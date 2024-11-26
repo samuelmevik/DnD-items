@@ -1,6 +1,6 @@
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 
 interface FilterSidebarProps {
   allTags: string[];
@@ -23,29 +23,31 @@ export default function FilterSidebar({
 }: FilterSidebarProps) {
   const handleTagChange = (tag: string) => {
     if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tag))
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
     } else {
-      setSelectedTags([...selectedTags, tag])
+      setSelectedTags([...selectedTags, tag]);
     }
-  }
+  };
 
   return (
-    <div className="w-64 pr-8">
+    <div className="md:w-64 md:mr-8">
       <h2 className="text-2xl font-semibold mb-4">Filters</h2>
       <div className="mb-6">
         <h3 className="text-lg font-medium mb-2">Tags</h3>
-        {allTags.map((tag) => (
-          <div key={tag} className="flex items-center mb-2">
-            <Checkbox
-              id={tag}
-              checked={selectedTags.includes(tag)}
-              onCheckedChange={() => handleTagChange(tag)}
-            />
-            <Label htmlFor={tag} className="ml-2">
-              {tag}
-            </Label>
-          </div>
-        ))}
+        <div className="grid md:grid-cols-1 grid-cols-3 gap-2">
+          {allTags.map((tag) => (
+            <div key={tag} className="flex items-center mb-2">
+              <Checkbox
+                id={tag}
+                checked={selectedTags.includes(tag)}
+                onCheckedChange={() => handleTagChange(tag)}
+              />
+              <Label htmlFor={tag} className="ml-2">
+                {tag}
+              </Label>
+            </div>
+          ))}
+        </div>
       </div>
       <div>
         <h3 className="text-lg font-medium mb-2">Price Range</h3>
@@ -63,5 +65,5 @@ export default function FilterSidebar({
         </div>
       </div>
     </div>
-  )
+  );
 }
