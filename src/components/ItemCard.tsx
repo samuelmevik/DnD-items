@@ -30,18 +30,22 @@ export default function ItemCard({ item }: { item: Item }) {
       </CardHeader>
       <CardContent>
         <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-        <div className="flex flex-wrap gap-2">
-          {item.tags.map((tag) => (
-            <Tag key={tag} tag={tag} />
-          ))}
-        </div>
+
       </CardContent>
+
       <CardFooter>
-        {item.notBasePrice ? (
-          <p> <span className='text-lg font-semibold'>{item.price} gp</span> <span className='italic text-sm'>+ Base price</span></p>
-        ) :
-          <p className="text-lg font-semibold">{item.price} gp</p>
-        }
+        <div className='grid'>
+          <div className="flex flex-wrap gap-2">
+            {item.tags.map((tag) => (
+              <Tag key={tag} tag={tag} />
+            ))}
+          </div>
+          {item.notBasePrice ? (
+            <p> <span className='text-lg font-semibold'>{item.price} gp</span> <span className='italic text-sm'>+ Base price</span></p>
+          ) :
+            <p className="text-lg font-semibold">{item.price} gp</p>
+          }
+        </div>
       </CardFooter>
     </Card>
   )
