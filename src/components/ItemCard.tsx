@@ -33,13 +33,12 @@ export default function ItemCard({ item }: { item: Item }) {
         <div className="flex flex-wrap gap-2">
           {item.tags.map((tag) => (
             <Tag key={tag} tag={tag} />
-
           ))}
         </div>
       </CardContent>
       <CardFooter>
         {item.notBasePrice ? (
-          <p> <span className='text-lg font-semibold'>{item.price} gp</span>  + base price</p>
+          <p> <span className='text-lg font-semibold'>{item.price} gp</span>  + <span className='italic'>Base price</span></p>
         ) :
           <p className="text-lg font-semibold">{item.price} gp</p>
         }
