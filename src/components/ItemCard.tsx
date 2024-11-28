@@ -38,7 +38,7 @@ export default function ItemCard({ item }: { item: Item }) {
       </CardContent>
       <CardFooter>
         {item.notBasePrice ? (
-          <p> <span className='text-lg font-semibold'>{item.price} gp</span>  + <span className='italic'>Base price</span></p>
+          <p> <span className='text-lg font-semibold'>{item.price} gp</span> <span className='italic text-sm'>+ Base price</span></p>
         ) :
           <p className="text-lg font-semibold">{item.price} gp</p>
         }
