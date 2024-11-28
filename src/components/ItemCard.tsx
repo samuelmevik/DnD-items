@@ -9,6 +9,7 @@ const itemRarityColors: { [key: string]: string } = {
   "very rare": "purple",
   legendary: "orange",
   artifact: "red",
+  "wondrous item": "yellow",
 };
 
 function Tag({ tag }: { tag: string }) {

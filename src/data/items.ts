@@ -3120,7 +3120,7 @@ export const items: Item[] = [
     id: 432,
     name: 'Arcane Grimoire, +2',
     description: 'Arcane Grimoire with a +2 bonus',
-    price: 57500,
+    price: 5750,
     tags: ['Wondrous Item', 'Rare'],
   },
   {
