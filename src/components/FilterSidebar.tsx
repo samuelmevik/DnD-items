@@ -30,7 +30,7 @@ export default function FilterSidebar({
   };
 
   return (
-    <div className="md:w-64 md:mr-8">
+    <div className="min-w-64">
       <h2 className="text-2xl font-semibold mb-4">Filters</h2>
       <div className="mb-6">
         <h3 className="text-lg font-medium mb-2">Tags</h3>

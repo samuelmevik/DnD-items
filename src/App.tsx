@@ -25,20 +25,24 @@ function App() {
   });
 
   return (
-    <main className="flex min-h-screen flex-col items-center mx-auto max-w-7xl p-4">
-      <h1 className="text-4xl font-bold mb-8">D&D Item Catalog</h1>
-      <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      <div className="md:flex w-full mt-8">
-        <FilterSidebar
-          allTags={allTags}
-          selectedTags={selectedTags}
-          setSelectedTags={setSelectedTags}
-          lowestPrice={lowestPrice}
-          highestPrice={highestPrice}
-          priceRange={priceRange}
-          setPriceRange={setPriceRange}
-        />
-        <ItemList items={filteredItems} />
+    <main className="flex h-screen p-4 mx-auto max-w-7xl">
+      <div className="flex flex-col flex-grow overflow-hidden gap-4">
+        <div className="grid place-items-center gap-4 mb-4">
+          <h1 className="text-4xl font-bold mb-4">D&D Item Catalog</h1>
+          <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </div>
+        <div className="flex flex-grow overflow-hidden gap-4">
+          <FilterSidebar
+            allTags={allTags}
+            selectedTags={selectedTags}
+            setSelectedTags={setSelectedTags}
+            priceRange={priceRange}
+            setPriceRange={setPriceRange}
+            lowestPrice={lowestPrice}
+            highestPrice={highestPrice}
+          />
+          <ItemList items={filteredItems} />
+        </div>
       </div>
     </main>
   );

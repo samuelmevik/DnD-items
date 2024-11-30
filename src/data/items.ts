@@ -19,7 +19,7 @@ export const items: Item[] = [
   {
     id: 2,
     name: "Cast-off Armor",
-    description: "Cast-off armor",
+    description: "You can doff this armor as an action.",
     price: 50,
     notBasePrice: true,
     tags: ["Armor", "Common"],
@@ -2636,7 +2636,7 @@ export const items: Item[] = [
   {
     id: 363,
     name: 'Deck of Illusions',
-    description: 'Deck of Illusions',
+    description: "The magic of the deck functions only if cards are drawn at random (you can use an altered deck of playing cards to simulate the deck). You can use an action to draw a card at random from the deck and throw it to the ground at a point within 30 feet of you.",
     price: 500,
     tags: ['Wondrous Item', 'Uncommon'],
   },

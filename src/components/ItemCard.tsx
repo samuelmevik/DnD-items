@@ -25,13 +25,12 @@ function Tag({ tag }: { tag: string }) {
 
 export default function ItemCard({ item }: { item: Item }) {
   return (
-    <Card className="w-full h-fit">
+    <Card className="flex flex-col justify-between">
       <CardHeader>
         <CardTitle>{item.name}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-
+      <CardContent className=''>
+        <p className="text-sm text-gray-600">{item.description}</p>
       </CardContent>
 
       <CardFooter>
