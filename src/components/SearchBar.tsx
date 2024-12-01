@@ -13,7 +13,7 @@ export default function SearchBar({ searchTerm, onSearchChange: setSearchTerm }:
         placeholder="Search items..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        className="w-full"
+        className="w-full text-black placeholder:text-black"
       />
     </div>
   )
