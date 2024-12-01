@@ -2,10 +2,10 @@ import { Input } from "@/components/ui/input"
 
 interface SearchBarProps {
   searchTerm: string;
-  setSearchTerm: (term: string) => void;
+  onSearchChange: (term: string) => void;
 }
 
-export default function SearchBar({ searchTerm, setSearchTerm }: SearchBarProps) {
+export default function SearchBar({ searchTerm, onSearchChange: setSearchTerm }: SearchBarProps) {
   return (
     <div className="w-full max-w-md">
       <Input

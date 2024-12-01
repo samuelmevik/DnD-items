@@ -2,32 +2,33 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 
-interface FilterSidebarProps {
+type FilterSidebarProps = {
   allTags: string[];
   selectedTags: string[];
-  setSelectedTags: (tags: string[]) => void;
-  lowestPrice: number;
-  highestPrice: number;
-  priceRange: [number, number];
-  setPriceRange: (range: [number, number]) => void;
+  onTagChange: (tags: string[]) => void;
+  minPrice: number;
+  onMinPriceChange: (price: number) => void;
+  maxPrice: number;
+  onMaxPriceChange: (price: number) => void;
+  availablePriceRange: [number, number];
 }
 
 export default function FilterSidebar({
   allTags,
   selectedTags,
-  setSelectedTags,
-  lowestPrice,
-  highestPrice,
-  priceRange,
-  setPriceRange,
+  onTagChange,
+  minPrice,
+  onMinPriceChange,
+  maxPrice,
+  onMaxPriceChange,
+  availablePriceRange,
 }: FilterSidebarProps) {
   const handleTagChange = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tag));
-    } else {
-      setSelectedTags([...selectedTags, tag]);
-    }
-  };
+    const newTags = selectedTags.includes(tag)
+      ? selectedTags.filter((t) => t !== tag)
+      : [...selectedTags, tag]
+    onTagChange(newTags)
+  }
 
   return (
     <div className="min-w-64">
@@ -49,20 +50,33 @@ export default function FilterSidebar({
           ))}
         </div>
       </div>
-      <div>
+      <div> 
         <h3 className="text-lg font-medium mb-2">Price Range</h3>
-        <Slider
-          min={lowestPrice}
-          max={highestPrice}
-          step={100}
-          value={priceRange}
-          onValueChange={(value) => setPriceRange(value as [number, number])}
-          className="mb-2"
-        />
-        <div className="flex justify-between">
-          <span>{priceRange[0]} gp</span>
-          <span>{priceRange[1]} gp</span>
+        <div>
+          <p>Minimum Price</p> 
+          <Slider
+            min={availablePriceRange[0]}
+            max={availablePriceRange[1]}
+            step={1}
+            value={[minPrice]}
+            onValueChange={([value]) => onMinPriceChange(value)}
+            className="mb-2"
+          />
+          <span>{minPrice} gp</span>
         </div>
+        <div>
+          <p>Maximum Price</p>
+          <Slider
+            min={availablePriceRange[0]}
+            max={availablePriceRange[1]}
+            step={1}
+            value={[maxPrice]}
+            onValueChange={([value]) => onMaxPriceChange(value)}
+            className="mb-2"
+          />
+          <span>{maxPrice} gp</span>
+        </div>
+
       </div>
     </div>
   );
