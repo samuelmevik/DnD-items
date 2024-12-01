@@ -61,7 +61,7 @@ function App() {
           <h1 className="text-4xl font-bold mb-4">D&D Item Catalog</h1>
           <SearchBar searchTerm={searchTerm} onSearchChange={handleSearchChange} />
         </div>
-        <div className="flex flex-grow overflow-hidden gap-4">
+        <div className="flex flex-col md:flex-row flex-grow overflow-hidden gap-4">
           <FilterSidebar
             allTags={allTags}
             selectedTags={selectedTags}
@@ -72,9 +72,9 @@ function App() {
             onMaxPriceChange={handleMaxPriceChange}
             availablePriceRange={availablePriceRange}
           />
-          <div className="flex-1 flex relative">
+          <div className="flex-1 flex flex-grow relative overflow-y-auto">
             {isPending && (
-              <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+              <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-50">
                 <Spinner />
               </div>
             )}
