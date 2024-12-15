@@ -27,7 +27,7 @@ function App() {
         if (item.price < minPrice || item.price > maxPrice) return false
         if (selectedTags.length > 0 && !selectedTags.every(tag => item.tags.includes(tag))) return false
         if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            !item.description.toLowerCase().includes(searchTerm.toLowerCase())) return false
+            !item.description.some(desc => desc.toLowerCase().includes(searchTerm.toLowerCase()))) return false
         return true
       })
       setFilteredItems(newFilteredItems)

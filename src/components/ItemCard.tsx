@@ -1,8 +1,23 @@
-import { Item } from '../data/items'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Item } from "../data/items";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { ViewIcon } from "lucide-react";
 
-const itemRarityColors: { [key: string]: string } = {
+const itemRarityColors: Record<string, string> = {
   common: "gray",
   uncommon: "green",
   rare: "blue",
@@ -13,40 +28,91 @@ const itemRarityColors: { [key: string]: string } = {
 };
 
 function Tag({ tag }: { tag: string }) {
+  const color = itemRarityColors[tag.toLowerCase()] ?? "gray";
   return (
-    <Badge variant="secondary" style={{
-      border:
-        `1px solid ${itemRarityColors[tag.toLowerCase()]}`,
-    }}>
+    <Badge
+      variant="secondary"
+      style={{ border: `1px solid ${color}` }}
+      className="capitalize"
+    >
       {tag}
     </Badge>
-  )
+  );
+}
+
+function Price({
+  price,
+  basePrice,
+}: {
+  price: number;
+  basePrice?: boolean;
+}) {
+  return (
+    <div>
+      <span className="text-lg font-semibold">{price} gp</span>{" "}
+      {basePrice && (
+        <span className="italic text-sm">+ Base price</span>
+      )}
+    </div>
+  );
+}
+
+function ItemDetails({ item }: { item: Item }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="text-sm text-gray-600 space-y-2">
+        {item.description.map((desc, i) => (
+          <p key={i}>{desc}</p>
+        ))}
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {item.tags.map((tag) => (
+          <Tag key={tag} tag={tag} />
+        ))}
+        <Price price={item.price} basePrice={item.notBasePrice} />
+      </div>
+    </div>
+  );
 }
 
 export default function ItemCard({ item }: { item: Item }) {
   return (
-    <Card className="flex flex-col justify-between">
+    <Card className="flex flex-col">
       <CardHeader>
         <CardTitle>{item.name}</CardTitle>
       </CardHeader>
-      <CardContent className=''>
-        <p className="text-sm text-gray-600">{item.description}</p>
+
+      <CardContent className="flex-1">
+        <div className="line-clamp-3 text-sm text-gray-600 space-y-1">
+          {item.description.map((desc, i) => (
+            <p key={i}>{desc}</p>
+          ))}
+        </div>
       </CardContent>
 
       <CardFooter>
-        <div className='grid'>
-          <div className="flex flex-wrap gap-2">
+        <div className="flex justify-between items-center w-full">
+          <div className="flex flex-wrap items-center gap-2">
             {item.tags.map((tag) => (
               <Tag key={tag} tag={tag} />
             ))}
+            <Price price={item.price} basePrice={item.notBasePrice} />
           </div>
-          {item.notBasePrice ? (
-            <p> <span className='text-lg font-semibold'>{item.price} gp</span> <span className='italic text-sm'>+ Base price</span></p>
-          ) :
-            <p className="text-lg font-semibold">{item.price} gp</p>
-          }
+          <Dialog>
+            <DialogTrigger>
+              <ViewIcon size={24} />
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{item.name}</DialogTitle>
+              </DialogHeader>
+              <DialogDescription className="mt-4">
+                <ItemDetails item={item} />
+              </DialogDescription>
+            </DialogContent>
+          </Dialog>
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }
