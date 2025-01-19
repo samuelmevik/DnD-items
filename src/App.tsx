@@ -55,13 +55,13 @@ function App() {
 
 
   return (
-    <main className="flex h-screen p-4 mx-auto max-w-7xl">
-      <div className="flex flex-col flex-grow overflow-hidden gap-4">
-        <div className="grid place-items-center gap-4 mb-4">
-          <h1 className="text-4xl font-bold mb-4">D&D Item Catalog</h1>
+    <main className="mx-auto flex h-screen max-w-7xl p-4">
+      <div className="flex grow flex-col gap-4 overflow-hidden">
+        <div className="mb-4 grid place-items-center gap-4">
+          <h1 className="mb-4 text-4xl font-bold">D&D Item Catalog</h1>
           <SearchBar searchTerm={searchTerm} onSearchChange={handleSearchChange} />
         </div>
-        <div className="flex flex-col md:flex-row flex-grow overflow-hidden gap-4">
+        <div className="flex grow flex-col gap-4 overflow-hidden md:flex-row">
           <FilterSidebar
             allTags={allTags}
             selectedTags={selectedTags}
@@ -72,9 +72,9 @@ function App() {
             onMaxPriceChange={handleMaxPriceChange}
             availablePriceRange={availablePriceRange}
           />
-          <div className="flex-1 flex flex-grow relative overflow-y-auto w-full">
+          <div className="relative flex w-full flex-1 grow overflow-y-auto">
             {isPending && (
-              <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-50">
+              <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50">
                 <Spinner />
               </div>
             )}

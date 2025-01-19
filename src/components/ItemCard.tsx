@@ -51,7 +51,7 @@ function Price({
     <div>
       <span className="text-lg font-semibold">{price} gp</span>{" "}
       {basePrice && (
-        <span className="italic text-sm">+ Base price</span>
+        <span className="text-sm italic">+ Base price</span>
       )}
     </div>
   );
@@ -60,7 +60,7 @@ function Price({
 function ItemDetails({ item }: { item: Item }) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="text-sm text-gray-600 space-y-2">
+      <div className="space-y-2 text-sm text-gray-600">
         {item.description.map((desc, i) => (
           <p key={i}>{desc}</p>
         ))}
@@ -83,7 +83,7 @@ export default function ItemCard({ item }: { item: Item }) {
       </CardHeader>
 
       <CardContent className="flex-1">
-        <div className="line-clamp-3 text-sm text-gray-600 space-y-1">
+        <div className="line-clamp-3 space-y-1 text-sm text-gray-600">
           {item.description.map((desc, i) => (
             <p key={i}>{desc}</p>
           ))}
@@ -91,7 +91,7 @@ export default function ItemCard({ item }: { item: Item }) {
       </CardContent>
 
       <CardFooter>
-        <div className="flex justify-between items-center w-full">
+        <div className="flex w-full items-center justify-between">
           <div className="flex flex-wrap items-center gap-2">
             {item.tags.map((tag) => (
               <Tag key={tag} tag={tag} />

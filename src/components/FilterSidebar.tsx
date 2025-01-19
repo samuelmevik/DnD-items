@@ -33,13 +33,13 @@ function FilterSection({
   return (
     <>
       <div className="md:mb-6">
-        <h3 className="text-lg font-medium mb-2 overflow-auto hidden md:block">
+        <h3 className="mb-2 hidden overflow-auto text-lg font-medium md:block">
           Tags
         </h3>
         <ScrollArea>
-          <div className="grid grid-flow-col grid-rows-2 md:grid-flow-row gap-x-8">
+          <div className="grid grid-flow-col grid-rows-2 gap-x-8 md:grid-flow-row">
             {allTags.map((tag) => (
-              <div key={tag} className="flex items-center mb-2">
+              <div key={tag} className="mb-2 flex items-center">
                 <Checkbox
                   id={tag}
                   checked={selectedTags.includes(tag)}
@@ -73,7 +73,7 @@ function PricingSection({
 }) {
   return (
     <div>
-      <h3 className="text-lg font-medium mb-2">Price Range</h3>
+      <h3 className="mb-2 text-lg font-medium">Price Range</h3>
       <div>
         <p>Minimum Price</p>
         <Slider
@@ -114,9 +114,9 @@ export default function FilterSidebar({
 }: FilterSidebarProps) {
   const [isOpen, setIsOpen] = useState(true);
   return (
-    <div className="min-w-64 bg-white h-fit p-4 rounded-xl shadow-md relative">
-      <h2 className="text-2xl font-semibold mb-4">Filters</h2>
-      <button onClick={() => setIsOpen(!isOpen)} className="absolute top-0 right-0 p-4">
+    <div className="relative h-fit min-w-64 rounded-xl bg-white p-4 shadow-md">
+      <h2 className="mb-4 text-2xl font-semibold">Filters</h2>
+      <button onClick={() => setIsOpen(!isOpen)} className="absolute right-0 top-0 p-4">
         {isOpen ? "Hide" : "Show"}
       </button>
       {isOpen && (
