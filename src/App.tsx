@@ -72,7 +72,7 @@ function App() {
             onMaxPriceChange={handleMaxPriceChange}
             availablePriceRange={availablePriceRange}
           />
-          <div className="flex-1 flex flex-grow relative overflow-y-auto">
+          <div className="flex-1 flex flex-grow relative overflow-y-auto w-full">
             {isPending && (
               <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-50">
                 <Spinner />
