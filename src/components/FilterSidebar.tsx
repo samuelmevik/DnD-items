@@ -32,8 +32,8 @@ function FilterSection({
   };
   return (
     <>
-      <div className="md:mb-6">
-        <h3 className="mb-2 hidden overflow-auto text-lg font-medium md:block">
+      <div className="md:mb-2">
+        <h3 className="hidden overflow-auto text-lg font-medium md:block">
           Tags
         </h3>
         <ScrollArea>
@@ -73,7 +73,7 @@ function PricingSection({
 }) {
   return (
     <div>
-      <h3 className="mb-2 text-lg font-medium">Price Range</h3>
+      <h3 className="text-lg font-medium">Price Range</h3>
       <div>
         <p>Minimum Price</p>
         <Slider
@@ -114,9 +114,12 @@ export default function FilterSidebar({
 }: FilterSidebarProps) {
   const [isOpen, setIsOpen] = useState(true);
   return (
-    <div className="relative h-fit min-w-64 rounded-xl bg-white p-4 shadow-md">
-      <h2 className="mb-4 text-2xl font-semibold">Filters</h2>
-      <button onClick={() => setIsOpen(!isOpen)} className="absolute right-0 top-0 p-4">
+    <div className="relative h-fit min-w-64 rounded-xl bg-white p-2 shadow-md">
+      <h2 className="text-2xl font-semibold">Filters</h2>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="absolute right-0 top-0 p-4"
+      >
         {isOpen ? "Hide" : "Show"}
       </button>
       {isOpen && (
