@@ -24,7 +24,7 @@ export default function SearchBar({
       <Input
         ref={inputRef}
         type="text"
-        placeholder="Search items by name or description… (press / to focus)"
+        placeholder="Search items by name or description…"
         value={searchTerm}
         onChange={(e) => onSearchChange(e.target.value)}
         onKeyDown={(e) => {
