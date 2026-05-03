@@ -1,88 +1,152 @@
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
-import SearchBar from "./components/SearchBar";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { highestPrice, Item, items, lowestPrice } from "./data/items";
+import {
+  activeFilterCount,
+  FilterState,
+  filterItems,
+} from "./lib/filters";
+import { useFavorites } from "./lib/favorites";
+import { useFilterState } from "./lib/urlState";
+import { Header } from "./components/Header";
 import FilterSidebar from "./components/FilterSidebar";
-import { allTags, highestPrice, Item, items, lowestPrice } from "./data/items";
 import ItemList from "./components/ItemList";
-import { Spinner } from "./components/Spinner";
+import { ResultsHeader } from "./components/ResultsHeader";
+import { EmptyState } from "./components/EmptyState";
+import { ItemDetailsDialog } from "./components/ItemDetailsDialog";
+
+const defaultFilterState: FilterState = {
+  search: "",
+  rarities: [],
+  categories: [],
+  minPrice: lowestPrice,
+  maxPrice: highestPrice,
+  favoritesOnly: false,
+  sort: "price-asc",
+};
 
 function App() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [minPrice, setMinPrice] = useState(lowestPrice)
-  const [maxPrice, setMaxPrice] = useState(highestPrice)
-  const [isPending, startTransition] = useTransition()
-  const [filteredItems, setFilteredItems] = useState<Item[]>(items)
+  const [state, updateState, resetState] = useFilterState(defaultFilterState);
+  const { favorites, toggle: toggleFavorite, isFavorite } = useFavorites();
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const availablePriceRange = useMemo(() => {
-    const relevantItems = selectedTags.length === 0
-      ? items
-      : items.filter(item => selectedTags.every(tag => item.tags.includes(tag)))
-    const prices = relevantItems.map(item => item.price)
-    return [Math.min(...prices), Math.max(...prices)] as [number, number]
-  }, [selectedTags])
+  const deferredState = useDeferredValue(state);
+
+  const filteredItems = useMemo(
+    () => filterItems(items, deferredState, favorites),
+    [deferredState, favorites],
+  );
+
+  const handleSearchChange = useCallback(
+    (search: string) => updateState({ search }),
+    [updateState],
+  );
+
+  const handleClearFilters = useCallback(() => {
+    resetState();
+  }, [resetState]);
+
+  const handleFavoritesToggle = useCallback(() => {
+    updateState({ favoritesOnly: !state.favoritesOnly });
+  }, [state.favoritesOnly, updateState]);
 
   useEffect(() => {
-    startTransition(() => {
-      const newFilteredItems = items.filter((item) => {
-        if (item.price < minPrice || item.price > maxPrice) return false
-        if (selectedTags.length > 0 && !selectedTags.every(tag => item.tags.includes(tag))) return false
-        if (searchTerm && !item.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-            !item.description.some(desc => desc.toLowerCase().includes(searchTerm.toLowerCase()))) return false
-        return true
-      })
-      setFilteredItems(newFilteredItems)
-    })
-  }, [searchTerm, selectedTags, minPrice, maxPrice])
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "/") return;
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) {
+        return;
+      }
+      e.preventDefault();
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
-  const handleSearchChange = useCallback((term: string) => {
-    setSearchTerm(term)
-  }, [])
+  const filterCount = activeFilterCount(state);
+  const hasActiveFilters =
+    filterCount > 0 ||
+    state.minPrice !== defaultFilterState.minPrice ||
+    state.maxPrice !== defaultFilterState.maxPrice;
 
-  const handleTagChange = useCallback((tags: string[]) => {
-    setSelectedTags(tags)
-    const [newMin, newMax] = availablePriceRange
-    setMinPrice(newMin)
-    setMaxPrice(newMax)
-  }, [availablePriceRange])
-
-  const handleMinPriceChange = useCallback((price: number) => {
-    setMinPrice(Math.min(price, maxPrice - 1))
-  }, [maxPrice])
-
-  const handleMaxPriceChange = useCallback((price: number) => {
-    setMaxPrice(Math.max(price, minPrice + 1))
-  }, [minPrice])
-
+  const resetKey = useMemo(
+    () =>
+      [
+        deferredState.search,
+        deferredState.rarities.join(","),
+        deferredState.categories.join(","),
+        deferredState.minPrice,
+        deferredState.maxPrice,
+        deferredState.favoritesOnly,
+        deferredState.sort,
+        favorites.size,
+      ].join("|"),
+    [deferredState, favorites.size],
+  );
 
   return (
-    <main className="mx-auto flex h-screen max-w-7xl p-4">
-      <div className="flex grow flex-col gap-4 overflow-hidden">
-        <div className="mb-4 grid place-items-center gap-4">
-          <h1 className="mb-4 text-4xl font-bold">D&D Item Catalog</h1>
-          <SearchBar searchTerm={searchTerm} onSearchChange={handleSearchChange} />
-        </div>
-        <div className="flex grow flex-col gap-4 overflow-hidden md:flex-row">
-          <FilterSidebar
-            allTags={allTags}
-            selectedTags={selectedTags}
-            onTagChange={handleTagChange}
-            minPrice={minPrice}
-            onMinPriceChange={handleMinPriceChange}
-            maxPrice={maxPrice}
-            onMaxPriceChange={handleMaxPriceChange}
-            availablePriceRange={availablePriceRange}
+    <div className="min-h-screen bg-background text-foreground">
+      <Header
+        searchTerm={state.search}
+        onSearchChange={handleSearchChange}
+        searchInputRef={searchInputRef}
+        onOpenMobileFilters={() => setMobileFiltersOpen(true)}
+        activeFilterCount={filterCount}
+      />
+
+      <main className="mx-auto flex max-w-7xl flex-col gap-4 p-3 md:flex-row md:p-4">
+        <FilterSidebar
+          items={items}
+          state={state}
+          onChange={updateState}
+          favorites={favorites}
+          priceBounds={[lowestPrice, highestPrice]}
+          mobileOpen={mobileFiltersOpen}
+          onMobileOpenChange={setMobileFiltersOpen}
+        />
+
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          <ResultsHeader
+            count={filteredItems.length}
+            total={items.length}
+            sort={state.sort}
+            onSortChange={(sort) => updateState({ sort })}
+            hasActiveFilters={hasActiveFilters}
+            onClearFilters={handleClearFilters}
+            favoritesOnly={state.favoritesOnly}
+            onFavoritesToggle={handleFavoritesToggle}
+            favoriteCount={favorites.size}
           />
-          <div className="relative flex w-full flex-1 grow overflow-y-auto">
-            {isPending && (
-              <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50">
-                <Spinner />
-              </div>
-            )}
-            <ItemList items={filteredItems} />
-          </div>
+
+          {filteredItems.length === 0 ? (
+            <div className="min-h-[50vh]">
+              <EmptyState onClearFilters={handleClearFilters} />
+            </div>
+          ) : (
+            <ItemList
+              items={filteredItems}
+              isFavorite={isFavorite}
+              onSelect={setSelectedItem}
+              onToggleFavorite={toggleFavorite}
+              resetKey={resetKey}
+            />
+          )}
         </div>
-      </div>
-    </main>
+      </main>
+
+      <ItemDetailsDialog
+        item={selectedItem}
+        onOpenChange={(open) => !open && setSelectedItem(null)}
+        isFavorite={selectedItem ? isFavorite(selectedItem.id) : false}
+        onToggleFavorite={() => {
+          if (selectedItem) toggleFavorite(selectedItem.id);
+        }}
+      />
+    </div>
   );
 }
 

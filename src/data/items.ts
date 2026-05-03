@@ -3667,9 +3667,15 @@ export const db: PartialItem[] = [
 export const items: Item[] = db.map((item, index) => ({
   ...item,
   id: index + 1,
-})).sort((a,b) => a.price - b.price);
+})).sort((a, b) => a.price - b.price);
 
-export const lowestPrice = Math.min(...items.map((item) => item.price));
-export const highestPrice = Math.max(...items.map((item) => item.price));
+export const lowestPrice = items.reduce(
+  (min, item) => (item.price < min ? item.price : min),
+  items[0]?.price ?? 0,
+);
+export const highestPrice = items.reduce(
+  (max, item) => (item.price > max ? item.price : max),
+  items[0]?.price ?? 0,
+);
 
 export const allTags = Array.from(new Set(items.flatMap((item) => item.tags)));
