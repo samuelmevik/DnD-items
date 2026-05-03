@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import { Item } from "@/data/items";
 import {
@@ -7,7 +8,9 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 import { Tag } from "./Tag";
+import { Spinner } from "./Spinner";
 import { cn } from "@/lib/utils";
+import { API_ATTRIBUTION, fetchItemDescription } from "@/lib/api";
 
 type ItemDetailsDialogProps = {
   item: Item | null;
@@ -18,12 +21,65 @@ type ItemDetailsDialogProps = {
 
 const formatPrice = (price: number) => `${price.toLocaleString()} gp`;
 
+type DescriptionState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "loaded"; desc: string[] }
+  | { status: "fallback" }
+  | { status: "error" };
+
+const useRemoteDescription = (item: Item | null): DescriptionState => {
+  const [state, setState] = useState<DescriptionState>({ status: "idle" });
+
+  useEffect(() => {
+    if (!item) {
+      setState({ status: "idle" });
+      return;
+    }
+
+    const controller = new AbortController();
+    setState({ status: "loading" });
+
+    fetchItemDescription(item.slug, controller.signal)
+      .then((desc) => {
+        if (controller.signal.aborted) return;
+        if (desc && desc.length > 0) {
+          setState({ status: "loaded", desc });
+        } else {
+          setState({ status: "fallback" });
+        }
+      })
+      .catch((err: unknown) => {
+        if ((err as { name?: string })?.name === "AbortError") return;
+        setState({ status: "error" });
+      });
+
+    return () => controller.abort();
+  }, [item]);
+
+  return state;
+};
+
 export function ItemDetailsDialog({
   item,
   onOpenChange,
   isFavorite,
   onToggleFavorite,
 }: ItemDetailsDialogProps) {
+  const remote = useRemoteDescription(item);
+
+  const description =
+    remote.status === "loaded" ? remote.desc : item?.description ?? [];
+
+  const sourceLabel =
+    remote.status === "loading"
+      ? `Loading from ${API_ATTRIBUTION}…`
+      : remote.status === "loaded"
+        ? `From the ${API_ATTRIBUTION}`
+        : remote.status === "error"
+          ? `${API_ATTRIBUTION} unavailable — showing summary`
+          : null;
+
   return (
     <Dialog open={item != null} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -43,7 +99,7 @@ export function ItemDetailsDialog({
                 >
                   <Star
                     className={cn(
-                      "h-5 w-5",
+                      "size-5",
                       isFavorite && "fill-amber-400 text-amber-500",
                     )}
                   />
@@ -58,8 +114,25 @@ export function ItemDetailsDialog({
                 ))}
               </div>
 
-              <div className="space-y-2 text-foreground/90">
-                {item.description.map((desc, i) => (
+              {sourceLabel && (
+                <div
+                  className="flex items-center gap-2 text-xs text-muted-foreground"
+                  aria-live="polite"
+                >
+                  {remote.status === "loading" && (
+                    <Spinner className="size-3 border" />
+                  )}
+                  <span>{sourceLabel}</span>
+                </div>
+              )}
+
+              <div
+                className={cn(
+                  "space-y-2 text-foreground/90 transition-opacity",
+                  remote.status === "loading" && "opacity-60",
+                )}
+              >
+                {description.map((desc, i) => (
                   <p key={i}>{desc}</p>
                 ))}
               </div>
