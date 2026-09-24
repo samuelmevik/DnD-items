@@ -1,3 +1,4 @@
+import { useId, useState } from "react";
 import { Item } from "@/data/items";
 import {
   CATEGORIES,
@@ -7,6 +8,7 @@ import {
 } from "@/lib/filters";
 import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { X } from "lucide-react";
 
@@ -102,6 +104,107 @@ function Section({ title, children }: SectionProps) {
   );
 }
 
+type PriceInputProps = {
+  id: string;
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  emptyValue: number;
+  onCommit: (val: number) => void;
+};
+
+function PriceInput({
+  id,
+  label,
+  value,
+  min,
+  max,
+  emptyValue,
+  onCommit,
+}: PriceInputProps) {
+  const [prevValue, setPrevValue] = useState(value);
+  const [text, setText] = useState(() => value.toLocaleString());
+
+  // Adjust state during render when prop changes (e.g. from slider dragging or presets)
+  // Recommended React pattern: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  if (value !== prevValue) {
+    setPrevValue(value);
+    setText(value.toLocaleString());
+  }
+
+  const commit = (raw: string) => {
+    const digits = raw.replace(/[^0-9]/g, "");
+    if (!digits) {
+      setText(emptyValue.toLocaleString());
+      onCommit(emptyValue);
+      return;
+    }
+    const n = parseInt(digits, 10);
+    if (Number.isNaN(n)) {
+      setText(value.toLocaleString());
+      return;
+    }
+    const clamped = Math.max(min, Math.min(max, n));
+    setText(clamped.toLocaleString());
+    if (clamped !== value) {
+      onCommit(clamped);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      commit(text);
+      e.currentTarget.blur();
+    } else if (e.key === "Escape") {
+      setText(value.toLocaleString());
+      e.currentTarget.blur();
+    } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      e.preventDefault();
+      const step = e.shiftKey ? 100 : 10;
+      const delta = e.key === "ArrowUp" ? step : -step;
+      const digits = text.replace(/[^0-9]/g, "");
+      const current = digits ? parseInt(digits, 10) : value;
+      const next = Math.max(min, Math.min(max, current + delta));
+      setText(next.toLocaleString());
+      onCommit(next);
+    }
+  };
+
+  return (
+    <div>
+      <label
+        htmlFor={id}
+        className="mb-1 block text-[11px] font-medium text-muted-foreground"
+      >
+        {label}
+      </label>
+      <div className="relative flex items-center">
+        <Input
+          id={id}
+          type="text"
+          inputMode="numeric"
+          value={text}
+          onChange={(e) => setText(e.target.value.replace(/[^0-9]/g, ""))}
+          onFocus={(e) => {
+            const digits = text.replace(/[^0-9]/g, "");
+            if (digits) setText(digits);
+            e.currentTarget.select();
+          }}
+          onBlur={() => commit(text)}
+          onKeyDown={handleKeyDown}
+          placeholder={emptyValue.toLocaleString()}
+          className="h-8 px-2.5 pr-7 text-xs tabular-nums"
+          aria-label={`${label} in gold pieces`}
+        />
+        <span className="pointer-events-none absolute right-2 select-none text-[11px] text-muted-foreground">
+          gp
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function FilterContent({
   items,
   state,
@@ -110,6 +213,8 @@ function FilterContent({
   priceBounds,
 }: Omit<FilterSidebarProps, "mobileOpen" | "onMobileOpenChange">) {
   const [floor, ceiling] = priceBounds;
+  const minInputId = useId();
+  const maxInputId = useId();
 
   const handleRarityToggle = (tag: string) =>
     onChange({ rarities: togglePill(state.rarities, tag) });
@@ -188,7 +293,7 @@ function FilterContent({
             </button>
           ))}
         </div>
-        <div className="space-y-2 pt-2">
+        <div className="space-y-3 pt-2">
           <Slider
             min={floor}
             max={ceiling}
@@ -196,11 +301,42 @@ function FilterContent({
             minStepsBetweenThumbs={1}
             value={[state.minPrice, state.maxPrice]}
             onValueChange={handleSliderChange}
-            thumbLabels={["Minimum price", "Maximum price"]}
+            thumbLabels={[
+              `Minimum price (${formatPrice(state.minPrice)})`,
+              `Maximum price (${formatPrice(state.maxPrice)})`,
+            ]}
           />
-          <div className="flex items-center justify-between text-xs tabular-nums text-muted-foreground">
-            <span>{formatPrice(state.minPrice)}</span>
-            <span>{formatPrice(state.maxPrice)}</span>
+          <div className="grid grid-cols-2 gap-2">
+            <PriceInput
+              id={minInputId}
+              label="Min price"
+              value={state.minPrice}
+              min={floor}
+              max={ceiling}
+              emptyValue={floor}
+              onCommit={(newMin) => {
+                if (newMin > state.maxPrice) {
+                  onChange({ minPrice: newMin, maxPrice: newMin });
+                } else {
+                  onChange({ minPrice: newMin });
+                }
+              }}
+            />
+            <PriceInput
+              id={maxInputId}
+              label="Max price"
+              value={state.maxPrice}
+              min={floor}
+              max={ceiling}
+              emptyValue={ceiling}
+              onCommit={(newMax) => {
+                if (newMax < state.minPrice) {
+                  onChange({ minPrice: newMax, maxPrice: newMax });
+                } else {
+                  onChange({ maxPrice: newMax });
+                }
+              }}
+            />
           </div>
         </div>
       </Section>
