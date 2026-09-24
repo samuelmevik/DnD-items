@@ -41,11 +41,9 @@ export default function ItemCard({
           {item.name}
         </h3>
 
-        <div className="line-clamp-3 flex-1 text-sm text-muted-foreground">
-          {item.description.map((desc, i) => (
-            <p key={i}>{desc}</p>
-          ))}
-        </div>
+        <p className="line-clamp-3 flex-1 text-sm text-muted-foreground">
+          {item.synopsis}
+        </p>
 
         <div className="flex flex-wrap items-center gap-1.5 pt-1">
           {item.tags.map((tag) => (
