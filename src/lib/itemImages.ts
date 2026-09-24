@@ -1,9 +1,23 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Axe,
+  BookOpen,
   CircleDot,
+  Coins,
+  Compass,
+  Crosshair,
+  Crown,
+  Eye,
   Feather,
+  Flame,
   FlaskConical,
+  Footprints,
   Gem,
+  Hammer,
+  Hand,
+  Layers,
+  Music,
+  Package,
   Scroll,
   Shield,
   Sparkles,
@@ -118,7 +132,17 @@ export const SRD_ITEM_IMAGES: Record<string, string> = {
   "elemental-gem-earth": "/api/images/magic-items/elemental-gem-earth.png",
   "elemental-gem-fire": "/api/images/magic-items/elemental-gem-fire.png",
   "elemental-gem-water": "/api/images/magic-items/elemental-gem-water.png",
-  "potion-of-resistance-fire": "/api/2014/magic-items/potion-of-resistance-fire.png"
+  "potion-of-resistance": "/api/images/magic-items/potion-of-resistance-fire.png",
+  "potion-of-resistance-fire": "/api/images/magic-items/potion-of-resistance-fire.png",
+  "potion-of-resistance-acid": "/api/images/magic-items/potion-of-resistance-fire.png",
+  "potion-of-resistance-cold": "/api/images/magic-items/potion-of-resistance-fire.png",
+  "potion-of-resistance-force": "/api/images/magic-items/potion-of-resistance-fire.png",
+  "potion-of-resistance-lightning": "/api/images/magic-items/potion-of-resistance-fire.png",
+  "potion-of-resistance-necrotic": "/api/images/magic-items/potion-of-resistance-fire.png",
+  "potion-of-resistance-poison": "/api/images/magic-items/potion-of-resistance-fire.png",
+  "potion-of-resistance-psychic": "/api/images/magic-items/potion-of-resistance-fire.png",
+  "potion-of-resistance-radiant": "/api/images/magic-items/potion-of-resistance-fire.png",
+  "potion-of-resistance-thunder": "/api/images/magic-items/potion-of-resistance-fire.png",
 };
 
 export interface ImageResolvable {
@@ -129,19 +153,65 @@ export interface ImageResolvable {
 }
 
 /**
- * Returns the full remote URL of the item image if available from the API or custom image field.
+ * Returns the full remote URL of the item image if available from the API,
+ * custom image field, or smart family aliases.
  */
 export function getItemImageUrl(item: ImageResolvable): string | null {
   if (item.image) return item.image;
-  if (!item.slug) return null;
 
-  const path = SRD_ITEM_IMAGES[item.slug];
-  if (!path) return null;
-
-  if (path.startsWith("http://") || path.startsWith("https://")) {
-    return path;
+  // 1. Direct slug lookup
+  if (item.slug && SRD_ITEM_IMAGES[item.slug]) {
+    const path = SRD_ITEM_IMAGES[item.slug];
+    return path.startsWith("http") ? path : `${API_IMAGE_BASE}${path}`;
   }
-  return `${API_IMAGE_BASE}${path}`;
+
+  const s = (item.slug || "").toLowerCase();
+  const n = (item.name || "").toLowerCase();
+
+  // 2. Family fallbacks based on slug prefixes
+  if (s.startsWith("potion-of-resistance")) {
+    return `${API_IMAGE_BASE}/api/images/magic-items/potion-of-resistance-fire.png`;
+  }
+  if (s.startsWith("dragon-scale-mail")) {
+    return `${API_IMAGE_BASE}/api/images/magic-items/dragon-scale-mail.png`;
+  }
+  if (s.startsWith("belt-of-giant-strength")) {
+    return `${API_IMAGE_BASE}/api/images/magic-items/belt-of-giant-strength.png`;
+  }
+  if (s.startsWith("bag-of-tricks")) {
+    return `${API_IMAGE_BASE}/api/images/magic-items/bag-of-tricks.png`;
+  }
+  if (s.startsWith("elemental-gem")) {
+    return `${API_IMAGE_BASE}/api/images/magic-items/elemental-gem.png`;
+  }
+  if (s.startsWith("carpet-of-flying")) {
+    return `${API_IMAGE_BASE}/api/images/magic-items/carpet-of-flying.png`;
+  }
+  if (s.startsWith("crystal-ball")) {
+    return `${API_IMAGE_BASE}/api/images/magic-items/crystal-ball.png`;
+  }
+  if (s.startsWith("ammunition") || s === "arrow-of-slaying") {
+    return `${API_IMAGE_BASE}/api/images/magic-items/ammunition.png`;
+  }
+  if (s.startsWith("armor-of-resistance")) {
+    return `${API_IMAGE_BASE}/api/images/magic-items/armor-of-resistance.png`;
+  }
+
+  // 3. Name-based aliases
+  if (n.includes("ammunition of slaying")) {
+    return `${API_IMAGE_BASE}/api/images/magic-items/arrow-of-slaying.png`;
+  }
+  if (n.endsWith("ammunition")) {
+    return `${API_IMAGE_BASE}/api/images/magic-items/ammunition.png`;
+  }
+  if (n === "dragon armor") {
+    return `${API_IMAGE_BASE}/api/images/magic-items/dragon-scale-mail.png`;
+  }
+  if (n === "dwarven armor") {
+    return `${API_IMAGE_BASE}/api/images/magic-items/dwarven-plate.png`;
+  }
+
+  return null;
 }
 
 export type CategoryVisual = {
@@ -150,17 +220,208 @@ export type CategoryVisual = {
 };
 
 /**
- * Selects an appropriate fantasy category icon for items without dedicated illustrations.
+ * Intelligently selects a rich, specific fantasy icon and label
+ * based on item name, tags, and item category.
  */
-export function getItemCategoryVisual(tags: string[] = []): CategoryVisual {
-  if (tags.includes("Weapon")) return { icon: Sword, label: "Weapon" };
-  if (tags.includes("Armor") || tags.includes("Shield")) return { icon: Shield, label: "Armor" };
-  if (tags.includes("Potion")) return { icon: FlaskConical, label: "Potion" };
-  if (tags.includes("Ring")) return { icon: CircleDot, label: "Ring" };
-  if (tags.includes("Scroll")) return { icon: Scroll, label: "Scroll" };
-  if (tags.includes("Wand")) return { icon: Wand2, label: "Wand" };
-  if (tags.includes("Staff") || tags.includes("Rod")) return { icon: Sparkles, label: "Staff/Rod" };
-  if (tags.includes("Cloak")) return { icon: Feather, label: "Cloak/Garment" };
-  if (tags.includes("Tool")) return { icon: Wrench, label: "Tool" };
-  return { icon: Gem, label: "Wondrous Item" };
+export function getItemCategoryVisual(itemOrTags: ImageResolvable | string[] = []): CategoryVisual {
+  const isArray = Array.isArray(itemOrTags);
+  const tags: string[] = isArray ? itemOrTags : (itemOrTags.tags || []);
+  const name: string = isArray ? "" : (itemOrTags.name || "").toLowerCase();
+
+  // 1. Ranged Weapons & Ammunition
+  if (
+    name.includes("bow") ||
+    name.includes("crossbow") ||
+    name.includes("arrow") ||
+    name.includes("bolt") ||
+    name.includes("quiver")
+  ) {
+    return { icon: Crosshair, label: "Ranged Weapon / Ammo" };
+  }
+
+  // 2. Axes & Polearms
+  if (name.includes("axe") || name.includes("halberd") || name.includes("glaive")) {
+    return { icon: Axe, label: "Axe / Polearm" };
+  }
+
+  // 3. Bludgeoning & Heavy Weapons
+  if (
+    name.includes("hammer") ||
+    name.includes("mace") ||
+    name.includes("flail") ||
+    name.includes("morningstar") ||
+    name.includes("maul") ||
+    name.includes("club")
+  ) {
+    return { icon: Hammer, label: "Bludgeoning Weapon" };
+  }
+
+  // 4. Bladed & General Weapons
+  if (
+    tags.includes("Weapon") ||
+    name.includes("sword") ||
+    name.includes("blade") ||
+    name.includes("dagger") ||
+    name.includes("scimitar") ||
+    name.includes("rapier") ||
+    name.includes("spear") ||
+    name.includes("trident") ||
+    name.includes("lance")
+  ) {
+    return { icon: Sword, label: "Weapon" };
+  }
+
+  // 5. Shields & Armor
+  if (tags.includes("Shield") || name.includes("shield")) {
+    return { icon: Shield, label: "Shield" };
+  }
+  if (tags.includes("Armor") || name.includes("armor") || name.includes("mail") || name.includes("plate") || name.includes("breastplate")) {
+    return { icon: Shield, label: "Armor" };
+  }
+
+  // 6. Footwear
+  if (name.includes("boot") || name.includes("slipper") || name.includes("shoe")) {
+    return { icon: Footprints, label: "Footwear" };
+  }
+
+  // 7. Headwear
+  if (
+    name.includes("helm") ||
+    name.includes("circlet") ||
+    name.includes("crown") ||
+    name.includes("hat") ||
+    name.includes("cap") ||
+    name.includes("mask")
+  ) {
+    return { icon: Crown, label: "Headwear" };
+  }
+
+  // 8. Cloaks & Robes
+  if (
+    tags.includes("Cloak") ||
+    name.includes("cloak") ||
+    name.includes("robe") ||
+    name.includes("cape") ||
+    name.includes("mantle") ||
+    name.includes("coat")
+  ) {
+    return { icon: Feather, label: "Cloak / Robe" };
+  }
+
+  // 9. Handwear & Bracers
+  if (name.includes("glove") || name.includes("gauntlet") || name.includes("bracer")) {
+    return { icon: Hand, label: "Handwear / Bracers" };
+  }
+
+  // 10. Arcane Tomes & Books
+  if (
+    name.includes("tome") ||
+    name.includes("manual") ||
+    name.includes("book") ||
+    name.includes("grimoire") ||
+    name.includes("spellbook")
+  ) {
+    return { icon: BookOpen, label: "Tome / Grimoire" };
+  }
+
+  // 11. Scrolls
+  if (tags.includes("Scroll") || name.includes("scroll")) {
+    return { icon: Scroll, label: "Scroll" };
+  }
+
+  // 12. Wands, Rods, Staves
+  if (tags.includes("Staff") || name.includes("staff")) {
+    return { icon: Sparkles, label: "Staff" };
+  }
+  if (tags.includes("Rod") || name.includes("rod")) {
+    return { icon: Wand2, label: "Rod" };
+  }
+  if (tags.includes("Wand") || name.includes("wand")) {
+    return { icon: Wand2, label: "Wand" };
+  }
+
+  // 13. Rings & Belts
+  if (tags.includes("Ring") || name.includes("ring") || name.includes("band")) {
+    return { icon: CircleDot, label: "Ring" };
+  }
+  if (name.includes("belt") || name.includes("girdle") || name.includes("sash")) {
+    return { icon: CircleDot, label: "Belt" };
+  }
+
+  // 14. Potions & Elixirs
+  if (tags.includes("Potion") || name.includes("potion") || name.includes("elixir") || name.includes("oil") || name.includes("philter")) {
+    return { icon: FlaskConical, label: "Potion / Elixir" };
+  }
+
+  // 15. Instruments
+  if (
+    name.includes("lute") ||
+    name.includes("horn") ||
+    name.includes("harp") ||
+    name.includes("flute") ||
+    name.includes("drum") ||
+    name.includes("instrument") ||
+    name.includes("pipes") ||
+    name.includes("chime") ||
+    name.includes("bell") ||
+    name.includes("lyre")
+  ) {
+    return { icon: Music, label: "Instrument" };
+  }
+
+  // 16. Bags & Storage
+  if (name.includes("bag") || name.includes("pouch") || name.includes("haversack") || name.includes("pack") || name.includes("chest")) {
+    return { icon: Package, label: "Bag / Storage" };
+  }
+
+  // 17. Light & Fire Vessels
+  if (name.includes("candle") || name.includes("lamp") || name.includes("lantern") || name.includes("torch") || name.includes("censer") || name.includes("brazier")) {
+    return { icon: Flame, label: "Light / Vessel" };
+  }
+
+  // 18. Decks & Cards
+  if (name.includes("deck") || name.includes("cards")) {
+    return { icon: Layers, label: "Deck of Cards" };
+  }
+
+  // 19. Optics & Sight
+  if (name.includes("eye") || name.includes("goggles") || name.includes("spectacles") || name.includes("lens") || name.includes("monocle")) {
+    return { icon: Eye, label: "Optics / Sight" };
+  }
+
+  // 20. Navigation & Time
+  if (name.includes("compass") || name.includes("clock") || name.includes("hourglass")) {
+    return { icon: Compass, label: "Navigation / Time" };
+  }
+
+  // 21. Wealth & Currency
+  if (name.includes("coin") || name.includes("gold") || name.includes("purse")) {
+    return { icon: Coins, label: "Currency / Wealth" };
+  }
+
+  // 22. Jewelry & Gem Focus
+  if (
+    name.includes("amulet") ||
+    name.includes("necklace") ||
+    name.includes("periapt") ||
+    name.includes("medallion") ||
+    name.includes("talisman") ||
+    name.includes("brooch") ||
+    name.includes("gem") ||
+    name.includes("pearl") ||
+    name.includes("stone") ||
+    name.includes("crystal") ||
+    name.includes("orb") ||
+    name.includes("pendant")
+  ) {
+    return { icon: Gem, label: "Jewelry / Gem Focus" };
+  }
+
+  // 23. Artisan Tools
+  if (tags.includes("Tool") || name.includes("tool")) {
+    return { icon: Wrench, label: "Artisan Tool" };
+  }
+
+  // 24. Default Wondrous Item
+  return { icon: Sparkles, label: "Wondrous Item" };
 }

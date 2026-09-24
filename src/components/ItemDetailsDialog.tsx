@@ -9,6 +9,7 @@ import {
 } from "./ui/dialog";
 import { Tag } from "./Tag";
 import { Spinner } from "./Spinner";
+import ItemImage from "./ItemImage";
 import { cn } from "@/lib/utils";
 import { API_ATTRIBUTION, fetchItemDescription } from "@/lib/api";
 
@@ -82,7 +83,7 @@ export function ItemDetailsDialog({
 
   return (
     <Dialog open={item != null} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         {item && (
           <>
             <DialogHeader>
@@ -108,6 +109,8 @@ export function ItemDetailsDialog({
             </DialogHeader>
 
             <div className="space-y-4 text-sm">
+              <ItemImage item={item} variant="detail" />
+
               <div className="flex flex-wrap items-center gap-1.5">
                 {item.tags.map((tag) => (
                   <Tag key={tag} tag={tag} />

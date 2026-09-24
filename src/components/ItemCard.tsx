@@ -4,6 +4,7 @@ import { isRarity } from "@/lib/filters";
 import { cn } from "@/lib/utils";
 import { Tag } from "./Tag";
 import { rarityRingClass } from "@/lib/rarityStyles";
+import ItemImage from "./ItemImage";
 
 type ItemCardProps = {
   item: Item;
@@ -34,32 +35,36 @@ export default function ItemCard({
       <button
         type="button"
         onClick={() => onSelect(item)}
-        className="flex flex-1 flex-col items-stretch gap-3 p-4 text-left focus:outline-none"
+        className="flex flex-1 flex-col items-stretch text-left focus:outline-none"
         aria-label={`View details for ${item.name}`}
       >
-        <h3 className="pr-9 text-base font-semibold leading-tight">
-          {item.name}
-        </h3>
+        <ItemImage item={item} variant="card" />
 
-        <p className="line-clamp-3 flex-1 text-sm text-muted-foreground">
-          {item.synopsis}
-        </p>
+        <div className="flex flex-1 flex-col items-stretch gap-3 p-4">
+          <h3 className="pr-9 text-base font-semibold leading-tight">
+            {item.name}
+          </h3>
 
-        <div className="flex flex-wrap items-center gap-1.5 pt-1">
-          {item.tags.map((tag) => (
-            <Tag key={tag} tag={tag} />
-          ))}
-        </div>
+          <p className="line-clamp-3 flex-1 text-sm text-muted-foreground">
+            {item.synopsis}
+          </p>
 
-        <div className="flex items-baseline gap-1.5 pt-1">
-          <span className="text-base font-semibold">
-            {formatPrice(item.price)}
-          </span>
-          {item.notBasePrice && (
-            <span className="text-xs italic text-muted-foreground">
-              + base item
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            {item.tags.map((tag) => (
+              <Tag key={tag} tag={tag} />
+            ))}
+          </div>
+
+          <div className="flex items-baseline gap-1.5 pt-1">
+            <span className="text-base font-semibold">
+              {formatPrice(item.price)}
             </span>
-          )}
+            {item.notBasePrice && (
+              <span className="text-xs italic text-muted-foreground">
+                + base item
+              </span>
+            )}
+          </div>
         </div>
       </button>
 
@@ -76,7 +81,7 @@ export default function ItemCard({
             : `Add ${item.name} to favorites`
         }
         className={cn(
-          "absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
+          "absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md bg-background/80 backdrop-blur-xs text-muted-foreground shadow-xs transition-colors hover:bg-accent hover:text-foreground",
           isFavorite && "text-amber-500 hover:text-amber-500",
         )}
       >

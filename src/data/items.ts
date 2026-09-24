@@ -228,7 +228,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Armor of Acid Resistance",
-    slug: "",
+    slug: "armor-of-resistance",
     synopsis: "Grants resistance to acid damage while worn.",
     description: [
       "Armor (light, medium, or heavy), rare (requires attunement)",
@@ -240,7 +240,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Armor of Cold Resistance",
-    slug: "",
+    slug: "armor-of-resistance",
     synopsis: "Grants resistance to cold damage while worn.",
     description: [
       "Armor (light, medium, or heavy), rare (requires attunement)",
@@ -252,7 +252,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Armor of Fire Resistance",
-    slug: "",
+    slug: "armor-of-resistance",
     synopsis: "Grants resistance to fire damage while worn.",
     description: [
       "Armor (light, medium, or heavy), rare (requires attunement)",
@@ -264,7 +264,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Armor of Force Resistance",
-    slug: "",
+    slug: "armor-of-resistance",
     synopsis: "Grants resistance to force damage while worn.",
     description: [
       "Armor (light, medium, or heavy), rare (requires attunement)",
@@ -276,7 +276,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Armor of Lightning Resistance",
-    slug: "",
+    slug: "armor-of-resistance",
     synopsis: "Grants resistance to lightning damage while worn.",
     description: [
       "Armor (light, medium, or heavy), rare (requires attunement)",
@@ -288,7 +288,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Armor of Necrotic Resistance",
-    slug: "",
+    slug: "armor-of-resistance",
     synopsis: "Grants resistance to necrotic damage while worn.",
     description: [
       "Armor (light, medium, or heavy), rare (requires attunement)",
@@ -300,7 +300,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Armor of Poison Resistance",
-    slug: "",
+    slug: "armor-of-resistance",
     synopsis: "Grants resistance to poison damage while worn.",
     description: [
       "Armor (light, medium, or heavy), rare (requires attunement)",
@@ -312,7 +312,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Armor of Psychic Resistance",
-    slug: "",
+    slug: "armor-of-resistance",
     synopsis: "Grants resistance to psychic damage while worn.",
     description: [
       "Armor (light, medium, or heavy), rare (requires attunement)",
@@ -324,7 +324,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Armor of Radiant Resistance",
-    slug: "",
+    slug: "armor-of-resistance",
     synopsis: "Grants resistance to radiant damage while worn.",
     description: [
       "Armor (light, medium, or heavy), rare (requires attunement)",
@@ -336,7 +336,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Armor of Thunder Resistance",
-    slug: "",
+    slug: "armor-of-resistance",
     synopsis: "Grants resistance to thunder damage while worn.",
     description: [
       "Armor (light, medium, or heavy), rare (requires attunement)",
@@ -397,7 +397,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Glamoured Armor",
-    slug: "",
+    slug: "glamoured-studded-leather-armor",
     synopsis: "Grants +1 AC and can assume the appearance of normal clothing or other armor on a bonus action.",
     description: [
       "Armor (light, medium, or heavy), rare",
@@ -458,7 +458,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Dragon Armor",
-    slug: "",
+    slug: "dragon-scale-mail",
     synopsis: "Grants +1 AC, resistance to a dragon damage type, advantage vs dragon breath/fright, and senses nearby dragons.",
     description: [
       "Armor (scale mail), very rare (requires attunement)",
@@ -471,7 +471,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Dwarven Armor",
-    slug: "",
+    slug: "dwarven-plate",
     synopsis: "Grants a +2 bonus to AC and can reduce forced movement by up to 10 feet on a reaction.",
     description: [
       "Armor (plate), very rare (requires attunement)",
@@ -556,7 +556,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Armor of Etherealness",
-    slug: "",
+    slug: "plate-armor-of-etherealness",
     synopsis: "Allows you to cast the Etherealness spell on yourself as an action.",
     description: [
       "Armor (plate), legendary (requires attunement)",
@@ -1721,7 +1721,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Spell Scroll (1st Level)",
-    slug: "spell-scroll",
+    slug: "spell-scroll-1st",
     synopsis: "A magic scroll inscribed with a 1st level spell, castable once by reading it.",
     description: [
       "Scroll, varies",
@@ -1748,7 +1748,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Spell Scroll (2nd Level)",
-    slug: "spell-scroll",
+    slug: "spell-scroll-2nd",
     synopsis: "A magic scroll inscribed with a 2nd level spell, castable once by reading it.",
     description: [
       "Scroll, varies",
@@ -1775,7 +1775,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Spell Scroll (3rd Level)",
-    slug: "spell-scroll",
+    slug: "spell-scroll-3rd",
     synopsis: "A magic scroll inscribed with a 3rd level spell, castable once by reading it.",
     description: [
       "Scroll, varies",
@@ -1802,7 +1802,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Spell Scroll (4th Level)",
-    slug: "spell-scroll",
+    slug: "spell-scroll-4th",
     synopsis: "A magic scroll inscribed with a 4th level spell, castable once by reading it.",
     description: [
       "Scroll, varies",
@@ -1829,7 +1829,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Spell Scroll (5th Level)",
-    slug: "spell-scroll",
+    slug: "spell-scroll-5th",
     synopsis: "A magic scroll inscribed with a 5th level spell, castable once by reading it.",
     description: [
       "Scroll, varies",
@@ -2024,7 +2024,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Spell Scroll (6th Level)",
-    slug: "spell-scroll",
+    slug: "spell-scroll-6th",
     synopsis: "A magic scroll inscribed with a 6th level spell, castable once by reading it.",
     description: [
       "Scroll, varies",
@@ -2051,7 +2051,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Spell Scroll (7th Level)",
-    slug: "spell-scroll",
+    slug: "spell-scroll-7th",
     synopsis: "A magic scroll inscribed with a 7th level spell, castable once by reading it.",
     description: [
       "Scroll, varies",
@@ -2078,7 +2078,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Spell Scroll (8th Level)",
-    slug: "spell-scroll",
+    slug: "spell-scroll-8th",
     synopsis: "A magic scroll inscribed with a 8th level spell, castable once by reading it.",
     description: [
       "Scroll, varies",
@@ -2105,7 +2105,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Spell Scroll (9th Level)",
-    slug: "spell-scroll",
+    slug: "spell-scroll-9th",
     synopsis: "A magic scroll inscribed with a 9th level spell, castable once by reading it.",
     description: [
       "Scroll, varies",
@@ -2579,7 +2579,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Wand of Magic Missile",
-    slug: "",
+    slug: "wand-of-magic-missiles",
     synopsis: "Expends charges to cast Magic Missile, scaling up to 7 darts per casting.",
     description: [
       "Wand, uncommon",
@@ -2971,7 +2971,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Weapon of Warning",
-    slug: "",
+    slug: "weapon-of-warning",
     synopsis: "Grants advantage on initiative rolls and prevents you and nearby allies from being surprised.",
     description: [
       "Weapon (any), uncommon (requires attunement)",
@@ -3251,7 +3251,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Dragon Slayer Weapon",
-    slug: "",
+    slug: "dragon-slayer",
     synopsis: "Deals an extra 3d6 damage against dragons and provides a +1 bonus to attack and damage.",
     description: [
       "Weapon (any sword), rare",
@@ -3264,7 +3264,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Flame Tongue Weapon",
-    slug: "",
+    slug: "flame-tongue",
     synopsis: "Ignites on command to deal an extra 2d6 fire damage on every hit.",
     description: [
       "Weapon (any sword), rare (requires attunement)",
@@ -3276,7 +3276,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Frost Brand Weapon",
-    slug: "",
+    slug: "frost-brand",
     synopsis: "Deals an extra 1d6 cold damage, grants fire resistance, and extinguishes nonmagical fires.",
     description: [
       "Weapon (any sword), very rare (requires attunement)",
@@ -3289,7 +3289,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Giant Slayer Weapon",
-    slug: "",
+    slug: "giant-slayer",
     synopsis: "Deals an extra 2d6 damage to giants and can knock them prone on a DC 15 Str save.",
     description: [
       "Weapon (any axe or sword), rare",
@@ -3302,7 +3302,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Weapon of Life Stealing",
-    slug: "",
+    slug: "sword-of-life-stealing",
     synopsis: "On a natural 20, deals an extra 10 necrotic damage and grants you 10 temporary hit points.",
     description: [
       "Weapon (any sword), rare (requires attunement)",
@@ -3314,7 +3314,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Weapon of Wounding",
-    slug: "",
+    slug: "sword-of-wounding",
     synopsis: "Inflicts lingering necrotic wounds that prevent healing and deal 1d4 damage each round.",
     description: [
       "Weapon (any sword), rare (requires attunement)",
@@ -3327,7 +3327,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Weapon of Sharpness",
-    slug: "",
+    slug: "sword-of-sharpness",
     synopsis: "Maximizes damage against objects and severs limbs on a critical hit.",
     description: [
       "Weapon (any sword that deals slashing damage), very rare (requires attunement)",
@@ -3474,7 +3474,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Dancing Weapon",
-    slug: "",
+    slug: "dancing-sword",
     synopsis: "Can be released as a bonus action to hover and attack targets autonomously for 4 rounds.",
     description: [
       "Weapon (any sword), very rare (requires attunement)",
@@ -3522,7 +3522,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Nine Lives Stealer Weapon",
-    slug: "",
+    slug: "nine-lives-stealer",
     synopsis: "On a critical hit against a target with under 100 HP, forces a DC 15 Con save or instant death.",
     description: [
       "Weapon (any sword), very rare (requires attunement)",
@@ -3620,7 +3620,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Defender Weapon",
-    slug: "",
+    slug: "defender",
     synopsis: "A +3 weapon that lets you transfer some or all of its +3 bonus to your AC instead of attack.",
     description: [
       "Weapon (any sword), legendary (requires attunement)",
@@ -3646,7 +3646,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Holy Avenger Weapon",
-    slug: "",
+    slug: "holy-avenger",
     synopsis: "A +3 holy weapon dealing extra radiant damage to fiends/undead and creating a magical defense aura.",
     description: [
       "Weapon (any sword), legendary (requires attunement by a paladin)",
@@ -3671,7 +3671,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Vorpal Weapon",
-    slug: "",
+    slug: "vorpal-sword",
     synopsis: "A +3 weapon that decapitates the target on a natural 20 if it has a head and isn't immune.",
     description: [
       "Weapon (any sword that deals slashing damage), legendary (requires attunement)",
@@ -4684,7 +4684,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Elemental Gem (Blue Sapphire)",
-    slug: "elemental-gem",
+    slug: "elemental-gem-water",
     synopsis: "Can be crushed to summon a friendly water elemental from the elemental plane.",
     description: [
       "Wondrous item, uncommon",
@@ -4701,7 +4701,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Elemental Gem (Emerald)",
-    slug: "elemental-gem",
+    slug: "elemental-gem-earth",
     synopsis: "Can be crushed to summon a friendly earth elemental from the elemental plane.",
     description: [
       "Wondrous item, uncommon",
@@ -4718,7 +4718,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Elemental Gem (Red Corundum)",
-    slug: "elemental-gem",
+    slug: "elemental-gem-fire",
     synopsis: "Can be crushed to summon a friendly fire elemental from the elemental plane.",
     description: [
       "Wondrous item, uncommon",
@@ -4735,7 +4735,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Elemental Gem (Yellow Diamond)",
-    slug: "elemental-gem",
+    slug: "elemental-gem-air",
     synopsis: "Can be crushed to summon a friendly air elemental from the elemental plane.",
     description: [
       "Wondrous item, uncommon",
@@ -5009,7 +5009,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Keoghtom’s Ointment",
-    slug: "",
+    slug: "restorative-ointment",
     synopsis: "A soothing jar of balm with 4 doses that heal 2d8 + 2 HP and cure poisons and diseases.",
     description: [
       "Wondrous item, uncommon",
@@ -5146,7 +5146,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Quaal’s Feather Token (Anchor)",
-    slug: "",
+    slug: "feather-token-anchor",
     synopsis: "Moors a vessel firmly in place for 24 hours, keeping it stationary even in storms.",
     description: [
       "Wondrous item, rare",
@@ -5158,7 +5158,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Quaal’s Feather Token (Fan)",
-    slug: "",
+    slug: "feather-token-fan",
     synopsis: "Creates a steady magical wind capable of propelling a ship for 8 hours.",
     description: [
       "Wondrous item, rare",
@@ -5170,7 +5170,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Quaal’s Feather Token (Tree)",
-    slug: "",
+    slug: "feather-token-tree",
     synopsis: "Causes a towering 60-foot oak tree to instantly sprout and take root.",
     description: [
       "Wondrous item, rare",
@@ -5182,7 +5182,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Quiver of Ehlonna",
-    slug: "",
+    slug: "efficient-quiver",
     synopsis: "Has three compartments storing up to 60 arrows, 18 javelins, and 6 bows or staves effortlessly.",
     description: [
       "Wondrous item, uncommon",
@@ -5818,7 +5818,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Daern’s Instant Fortress",
-    slug: "",
+    slug: "instant-fortress",
     synopsis: "A small metal cube that expands into a 30-foot tall adamantine fortress tower.",
     description: [
       "Wondrous item, rare",
@@ -6094,7 +6094,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Heward’s Handy Haversack",
-    slug: "",
+    slug: "handy-haversack",
     synopsis: "Has two side pouches and a central pouch holding 120 pounds while weighing only 5 pounds.",
     description: [
       "Wondrous item, rare",
@@ -6213,7 +6213,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Iron Bands of Bilarro",
-    slug: "",
+    slug: "iron-bands-of-binding",
     synopsis: "An iron sphere thrown at a Large or smaller creature to entangle and restrain it securely.",
     description: [
       "Wondrous item, rare",
@@ -6389,7 +6389,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Quaal’s Feather Token (Bird)",
-    slug: "",
+    slug: "feather-token-bird",
     synopsis: "Summons a magical bird that delivers a brief written message to a recipient anywhere.",
     description: [
       "Wondrous item, rare",
@@ -6401,7 +6401,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Quaal’s Feather Token (Swan Boat)",
-    slug: "",
+    slug: "feather-token-swan-boat",
     synopsis: "Transforms into a 50-foot swan boat that moves across water at 24 miles per day.",
     description: [
       "Wondrous item, rare",
@@ -6413,7 +6413,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Quaal’s Feather Token (Whip)",
-    slug: "",
+    slug: "feather-token-whip",
     synopsis: "Transforms into a floating whip that attacks autonomously, dealing 1d6 + 1 force damage.",
     description: [
       "Wondrous item, rare",
@@ -7048,7 +7048,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Nolzur’s Marvelous Pigments",
-    slug: "",
+    slug: "marvelous-pigments",
     synopsis: "Magic paints that render realistic 2D paintings into permanent 3D physical objects.",
     description: [
       "Wondrous item, very rare",
@@ -7132,7 +7132,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Apparatus of Kwalish",
-    slug: "",
+    slug: "apparatus-of-the-crab",
     synopsis: "An amphibious mechanical crab submarine that seats two and navigates land and deep sea depths.",
     description: [
       "Wondrous item, legendary",
