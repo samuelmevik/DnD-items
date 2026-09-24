@@ -677,7 +677,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Hill Giant Strength",
-    slug: "",
+    slug: "potion-of-giant-strength-hill",
     synopsis: "Increases your Strength score to 21 for 1 hour when consumed.",
     description: [
       "Potion, uncommon",
@@ -723,7 +723,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Waterbreathing",
-    slug: "",
+    slug: "potion-of-water-breathing",
     synopsis: "Allows you to breathe underwater for 1 hour.",
     description: [
       "Potion, uncommon",
@@ -778,7 +778,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Fire Giant Strength",
-    slug: "",
+    slug: "potion-of-giant-strength-fire",
     synopsis: "Increases your Strength score to 25 for 1 hour when consumed.",
     description: [
       "Potion, rare",
@@ -790,7 +790,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Frost Giant Strength",
-    slug: "",
+    slug: "potion-of-giant-strength-frost",
     synopsis: "Increases your Strength score to 23 for 1 hour when consumed.",
     description: [
       "Potion, rare",
@@ -846,7 +846,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Stone Giant Strength",
-    slug: "",
+    slug: "potion-of-giant-strength-stone",
     synopsis: "Increases your Strength score to 23 for 1 hour when consumed.",
     description: [
       "Potion, rare",
@@ -858,7 +858,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Acid Resistance",
-    slug: "",
+    slug: "potion-of-resistance-acid",
     synopsis: "Grants resistance to acid damage for 1 hour when consumed.",
     description: [
       "Potion, uncommon",
@@ -869,7 +869,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Cold Resistance",
-    slug: "",
+    slug: "potion-of-resistance-cold",
     synopsis: "Grants resistance to cold damage for 1 hour when consumed.",
     description: [
       "Potion, uncommon",
@@ -880,7 +880,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Fire Resistance",
-    slug: "",
+    slug: "potion-of-resistance-fire",
     synopsis: "Grants resistance to fire damage for 1 hour when consumed.",
     description: [
       "Potion, uncommon",
@@ -891,7 +891,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Force Resistance",
-    slug: "",
+    slug: "potion-of-resistance-force",
     synopsis: "Grants resistance to force damage for 1 hour when consumed.",
     description: [
       "Potion, uncommon",
@@ -902,7 +902,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Lightning Resistance",
-    slug: "",
+    slug: "potion-of-resistance-lightning",
     synopsis: "Grants resistance to lightning damage for 1 hour when consumed.",
     description: [
       "Potion, uncommon",
@@ -913,7 +913,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Necrotic Resistance",
-    slug: "",
+    slug: "potion-of-resistance-necrotic",
     synopsis: "Grants resistance to necrotic damage for 1 hour when consumed.",
     description: [
       "Potion, uncommon",
@@ -924,7 +924,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Poison Resistance",
-    slug: "",
+    slug: "potion-of-resistance-poison",
     synopsis: "Grants resistance to poison damage for 1 hour when consumed.",
     description: [
       "Potion, uncommon",
@@ -935,7 +935,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Psychic Resistance",
-    slug: "",
+    slug: "potion-of-resistance-psychic",
     synopsis: "Grants resistance to psychic damage for 1 hour when consumed.",
     description: [
       "Potion, uncommon",
@@ -946,7 +946,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Radiant Resistance",
-    slug: "",
+    slug: "potion-of-resistance-radiant",
     synopsis: "Grants resistance to radiant damage for 1 hour when consumed.",
     description: [
       "Potion, uncommon",
@@ -957,7 +957,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Thunder Resistance",
-    slug: "",
+    slug: "potion-of-resistance-thunder",
     synopsis: "Grants resistance to thunder damage for 1 hour when consumed.",
     description: [
       "Potion, uncommon",
@@ -990,7 +990,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Cloud Giant Strength",
-    slug: "",
+    slug: "potion-of-giant-strength-cloud",
     synopsis: "Increases your Strength score to 27 for 1 hour when consumed.",
     description: [
       "Potion, very rare",
@@ -1116,7 +1116,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Potion of Storm Giant Strength",
-    slug: "",
+    slug: "potion-of-giant-strength-storm",
     synopsis: "Increases your Strength score to 29 for 1 hour when consumed.",
     description: [
       "Potion, legendary",
@@ -1304,7 +1304,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Ring of Acid Resistance",
-    slug: "",
+    slug: "ring-of-resistance-acid",
     synopsis: "Grants resistance to acid damage while worn.",
     description: [
       "Ring, rare (requires attunement)",
@@ -1315,7 +1315,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Ring of Cold Resistance",
-    slug: "",
+    slug: "ring-of-resistance-cold",
     synopsis: "Grants resistance to cold damage while worn.",
     description: [
       "Ring, rare (requires attunement)",
@@ -1326,7 +1326,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Ring of Fire Resistance",
-    slug: "",
+    slug: "ring-of-resistance-fire",
     synopsis: "Grants resistance to fire damage while worn.",
     description: [
       "Ring, rare (requires attunement)",
@@ -1337,7 +1337,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Ring of Force Resistance",
-    slug: "",
+    slug: "ring-of-resistance-force",
     synopsis: "Grants resistance to force damage while worn.",
     description: [
       "Ring, rare (requires attunement)",
@@ -1348,7 +1348,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Ring of Lightning Resistance",
-    slug: "",
+    slug: "ring-of-resistance-lightning",
     synopsis: "Grants resistance to lightning damage while worn.",
     description: [
       "Ring, rare (requires attunement)",
@@ -1359,7 +1359,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Ring of Necrotic Resistance",
-    slug: "",
+    slug: "ring-of-resistance-necrotic",
     synopsis: "Grants resistance to necrotic damage while worn.",
     description: [
       "Ring, rare (requires attunement)",
@@ -1370,7 +1370,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Ring of Poison Resistance",
-    slug: "",
+    slug: "ring-of-resistance-poison",
     synopsis: "Grants resistance to poison damage while worn.",
     description: [
       "Ring, rare (requires attunement)",
@@ -1381,7 +1381,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Ring of Psychic Resistance",
-    slug: "",
+    slug: "ring-of-resistance-psychic",
     synopsis: "Grants resistance to psychic damage while worn.",
     description: [
       "Ring, rare (requires attunement)",
@@ -1392,7 +1392,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Ring of Radiant Resistance",
-    slug: "",
+    slug: "ring-of-resistance-radiant",
     synopsis: "Grants resistance to radiant damage while worn.",
     description: [
       "Ring, rare (requires attunement)",
@@ -1403,7 +1403,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Ring of Thunder Resistance",
-    slug: "",
+    slug: "ring-of-resistance-thunder",
     synopsis: "Grants resistance to thunder damage while worn.",
     description: [
       "Ring, rare (requires attunement)",
@@ -3389,7 +3389,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Sunblade",
-    slug: "",
+    slug: "sun-blade",
     synopsis: "A blade of pure radiant sunlight dealing extra damage to undead and shedding sunlight.",
     description: [
       "Weapon (longsword), rare (requires attunement)",
@@ -3535,7 +3535,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Oath Bow",
-    slug: "",
+    slug: "oathbow",
     synopsis: "Whispering 'Swift defeat to my foes' declares a sworn enemy, granting advantage and +3d6 damage against it.",
     description: [
       "Weapon (longbow), very rare (requires attunement)",
@@ -4927,7 +4927,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Gray Bag of Tricks",
-    slug: "",
+    slug: "bag-of-tricks-gray",
     synopsis: "Reaching in pulls out a fuzzy rust-colored ball that turns into a small random beast companion.",
     description: [
       "Wondrous item, uncommon",
@@ -5252,7 +5252,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Rust Bag of Tricks",
-    slug: "",
+    slug: "bag-of-tricks-rust",
     synopsis: "Reaching in pulls out a ball that transforms into a random medium beast companion.",
     description: [
       "Wondrous item, uncommon",
@@ -5334,7 +5334,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Tan Bag of Tricks",
-    slug: "",
+    slug: "bag-of-tricks-tan",
     synopsis: "Reaching in pulls out a ball that transforms into a random large beast companion.",
     description: [
       "Wondrous item, uncommon",
@@ -5578,7 +5578,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Belt of Hill Giant Strength",
-    slug: "",
+    slug: "belt-of-giant-strength-hill",
     synopsis: "Increases your Strength score to 21 while worn.",
     description: [
       "Wondrous item, rare (requires attunement)",
@@ -6669,7 +6669,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Belt of Fire Giant Strength",
-    slug: "",
+    slug: "belt-of-giant-strength-fire",
     synopsis: "Increases your Strength score to 25 while worn.",
     description: [
       "Wondrous item, very rare (requires attunement)",
@@ -6680,7 +6680,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Belt of Frost Giant Strength",
-    slug: "",
+    slug: "belt-of-giant-strength-frost",
     synopsis: "Increases your Strength score to 23 while worn.",
     description: [
       "Wondrous item, very rare (requires attunement)",
@@ -6691,7 +6691,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Belt of Stone Giant Strength",
-    slug: "",
+    slug: "belt-of-giant-strength-stone",
     synopsis: "Increases your Strength score to 23 while worn.",
     description: [
       "Wondrous item, very rare (requires attunement)",
@@ -7164,7 +7164,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Belt of Cloud Giant Strength",
-    slug: "",
+    slug: "belt-of-giant-strength-cloud",
     synopsis: "Increases your Strength score to 27 while worn.",
     description: [
       "Wondrous item, legendary (requires attunement)",
@@ -7175,7 +7175,7 @@ export const db: PartialItem[] = [
   },
   {
     name: "Belt of Storm Giant Strength",
-    slug: "",
+    slug: "belt-of-giant-strength-storm",
     synopsis: "Increases your Strength score to 29 while worn.",
     description: [
       "Wondrous item, legendary (requires attunement)",
