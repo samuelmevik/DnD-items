@@ -10,7 +10,22 @@ import { cn } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { X } from "lucide-react";
+import {
+  X,
+  Shield,
+  ShieldHalf,
+  Shirt,
+  FlaskConical,
+  CircleDot,
+  Slash,
+  ScrollText,
+  Wand,
+  Wand2,
+  Wrench,
+  Swords,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
 
 type FilterSidebarProps = {
   items: Item[];
@@ -24,17 +39,47 @@ type FilterSidebarProps = {
 
 const RARITY_PILL_ACTIVE: Record<string, string> = {
   Common:
-    "border-zinc-400 bg-zinc-200 text-zinc-900 dark:border-zinc-500 dark:bg-zinc-700 dark:text-zinc-100",
+    "border-stone-400 bg-stone-200 text-stone-900 dark:border-stone-500 dark:bg-stone-700 dark:text-stone-100",
   Uncommon:
-    "border-emerald-400 bg-emerald-100 text-emerald-900 dark:border-emerald-600 dark:bg-emerald-900/60 dark:text-emerald-100",
+    "border-teal-500 bg-teal-200 text-teal-950 dark:border-teal-500 dark:bg-teal-900/70 dark:text-teal-50",
   Rare:
-    "border-sky-400 bg-sky-100 text-sky-900 dark:border-sky-600 dark:bg-sky-900/60 dark:text-sky-100",
+    "border-blue-500 bg-blue-200 text-blue-950 dark:border-blue-500 dark:bg-blue-900/70 dark:text-blue-50",
   "Very Rare":
-    "border-violet-400 bg-violet-100 text-violet-900 dark:border-violet-600 dark:bg-violet-900/60 dark:text-violet-100",
+    "border-fuchsia-500 bg-fuchsia-200 text-fuchsia-950 dark:border-fuchsia-500 dark:bg-fuchsia-900/70 dark:text-fuchsia-50",
   Legendary:
-    "border-amber-400 bg-amber-100 text-amber-900 dark:border-amber-600 dark:bg-amber-900/60 dark:text-amber-100",
+    "border-amber-500 bg-amber-300 text-amber-950 shadow-[0_0_8px_theme(colors.amber.400/60%)] dark:border-amber-400 dark:bg-amber-600/80 dark:text-amber-50",
   Artifact:
-    "border-red-400 bg-red-100 text-red-900 dark:border-red-600 dark:bg-red-900/60 dark:text-red-100",
+    "border-rose-600 bg-rose-300 text-rose-950 shadow-[0_0_8px_theme(colors.rose.500/60%)] dark:border-rose-500 dark:bg-rose-900/80 dark:text-rose-50",
+};
+
+const RARITY_PILL_INACTIVE: Record<string, string> = {
+  Common:
+    "border-stone-300 bg-stone-100 text-stone-700 hover:bg-stone-200 dark:border-stone-700 dark:bg-stone-800/40 dark:text-stone-300 dark:hover:bg-stone-800/70",
+  Uncommon:
+    "border-teal-300 bg-teal-50 text-teal-700 hover:bg-teal-100 dark:border-teal-700 dark:bg-teal-950/40 dark:text-teal-300 dark:hover:bg-teal-950/70",
+  Rare:
+    "border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-950/70",
+  "Very Rare":
+    "border-fuchsia-300 bg-fuchsia-50 text-fuchsia-700 hover:bg-fuchsia-100 dark:border-fuchsia-700 dark:bg-fuchsia-950/40 dark:text-fuchsia-300 dark:hover:bg-fuchsia-950/70",
+  Legendary:
+    "border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-950/70",
+  Artifact:
+    "border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:border-rose-700 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-950/70",
+};
+
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  Armor: ShieldHalf,
+  Cloak: Shirt,
+  Potion: FlaskConical,
+  Ring: CircleDot,
+  Rod: Slash,
+  Scroll: ScrollText,
+  Shield: Shield,
+  Staff: Wand,
+  Tool: Wrench,
+  Wand: Wand2,
+  Weapon: Swords,
+  "Wondrous Item": Sparkles,
 };
 
 const PRICE_PRESETS: { label: string; range: [number, number | null] }[] = [
@@ -55,9 +100,19 @@ type PillProps = {
   count: number;
   onToggle: () => void;
   activeClass: string;
+  inactiveClass?: string;
+  icon?: LucideIcon;
 };
 
-function Pill({ label, active, count, onToggle, activeClass }: PillProps) {
+function Pill({
+  label,
+  active,
+  count,
+  onToggle,
+  activeClass,
+  inactiveClass,
+  icon: Icon,
+}: PillProps) {
   const disabled = count === 0 && !active;
   return (
     <button
@@ -71,15 +126,21 @@ function Pill({ label, active, count, onToggle, activeClass }: PillProps) {
         "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
         active
           ? activeClass
-          : "border-border bg-background text-foreground hover:bg-accent",
+          : (inactiveClass ??
+              "border-border bg-background text-foreground hover:bg-accent"),
         disabled && "cursor-not-allowed opacity-40",
       )}
     >
+      {Icon && <Icon className="size-3.5 shrink-0" aria-hidden />}
       <span>{label}</span>
       <span
         className={cn(
           "tabular-nums",
-          active ? "opacity-80" : "text-muted-foreground",
+          active
+            ? "opacity-80"
+            : inactiveClass
+              ? "opacity-70"
+              : "text-muted-foreground",
         )}
       >
         {count}
@@ -254,6 +315,7 @@ function FilterContent({
               count={tagCount(items, state, favorites, "rarities", tag)}
               onToggle={() => handleRarityToggle(tag)}
               activeClass={RARITY_PILL_ACTIVE[tag]}
+              inactiveClass={RARITY_PILL_INACTIVE[tag]}
             />
           ))}
         </div>
@@ -269,6 +331,7 @@ function FilterContent({
               count={tagCount(items, state, favorites, "categories", tag)}
               onToggle={() => handleCategoryToggle(tag)}
               activeClass="border-primary bg-primary text-primary-foreground"
+              icon={CATEGORY_ICONS[tag]}
             />
           ))}
         </div>

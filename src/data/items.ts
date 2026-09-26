@@ -3757,7 +3757,7 @@ export const db: PartialItem[] = [
       "While wearing this cloak, you can use a bonus action to cause it to billow dramatically, even in the complete absence of a breeze.",
     ],
     price: 10,
-    tags: ["Wondrous Item", "Common"],
+    tags: ["Wondrous Item", "Cloak", "Common"],
   },
   {
     name: "Cloak of Many Fashions",
@@ -3768,7 +3768,7 @@ export const db: PartialItem[] = [
       "While wearing this cloak, you can use a bonus action to change the style, color, cut, and apparent quality of the fabric. The cloak retains its normal weight and bulk.",
     ],
     price: 25,
-    tags: ["Wondrous Item", "Common"],
+    tags: ["Wondrous Item", "Cloak", "Common"],
   },
   {
     name: "Clockwork Amulet",
@@ -4497,7 +4497,7 @@ export const db: PartialItem[] = [
       "While you wear this cloak with its hood up, Wisdom (Perception) checks made to see you have disadvantage, and you have advantage on Dexterity (Stealth) checks made to hide, as the cloak's color shifts to camouflage you. Pulling the hood up or down requires an action.",
     ],
     price: 500,
-    tags: ["Wondrous Item", "Uncommon"],
+    tags: ["Wondrous Item", "Cloak", "Uncommon"],
   },
   {
     name: "Cloak of the Manta Ray",
@@ -4508,7 +4508,7 @@ export const db: PartialItem[] = [
       "While wearing this cloak with its hood up, you can breathe underwater, and you have a swimming speed of 60 feet. Pulling the hood up or down requires an action.",
     ],
     price: 650,
-    tags: ["Wondrous Item", "Uncommon"],
+    tags: ["Wondrous Item", "Cloak", "Uncommon"],
   },
   {
     name: "Coiling Grasp Tattoo",
@@ -5750,7 +5750,7 @@ export const db: PartialItem[] = [
       "While you wear this cloak, it projects an illusion that makes you appear to be standing in a place near your actual location, causing any creature to have disadvantage on attack rolls against you. If you take damage, the property ceases to function until the start of your next turn. This property is suppressed while you are incapacitated, restrained, or otherwise unable to move.",
     ],
     price: 5000,
-    tags: ["Wondrous Item", "Rare"],
+    tags: ["Wondrous Item", "Cloak", "Rare"],
   },
   {
     name: "Cloak of Protection",
@@ -5761,7 +5761,7 @@ export const db: PartialItem[] = [
       "You gain a +1 bonus to AC and saving throws while you wear this cloak.",
     ],
     price: 2000,
-    tags: ["Wondrous Item", "Rare"],
+    tags: ["Wondrous Item", "Cloak", "Rare"],
   },
   {
     name: "Cloak of the Bat",
@@ -5773,7 +5773,7 @@ export const db: PartialItem[] = [
       "While wearing the cloak in an area of dim light or darkness, you can use your action to cast polymorph on yourself, transforming into a bat. While you are in the form of the bat, you retain your Intelligence, Wisdom, and Charisma scores. The cloak can't be used this way again until the next dawn.",
     ],
     price: 3250,
-    tags: ["Wondrous Item", "Rare"],
+    tags: ["Wondrous Item", "Cloak", "Rare"],
   },
   {
     name: "Cube of Force",
@@ -6811,7 +6811,7 @@ export const db: PartialItem[] = [
       "* You can use an action to cast the web spell (save DC 13). The web created by the spell fills twice its normal area. Once used, this property of the cloak can't be used again until the next dawn.",
     ],
     price: 4500,
-    tags: ["Wondrous Item", "Very Rare"],
+    tags: ["Wondrous Item", "Cloak", "Very Rare"],
   },
   {
     name: "Crystal Ball",
@@ -7207,7 +7207,7 @@ export const db: PartialItem[] = [
       "While you are invisible, anything you are carrying or wearing is invisible with you. You remain invisible until you pull the hood down as an action. The cloak provides up to 2 hours of invisibility, usable in continuous or separate increments.",
     ],
     price: 20000,
-    tags: ["Wondrous Item", "Legendary"],
+    tags: ["Wondrous Item", "Cloak", "Legendary"],
   },
   {
     name: "Crystal Ball of Mind Reading",

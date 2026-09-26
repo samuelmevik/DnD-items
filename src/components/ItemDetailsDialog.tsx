@@ -22,6 +22,22 @@ type ItemDetailsDialogProps = {
 
 const formatPrice = (price: number) => `${price.toLocaleString()} gp`;
 
+// Splits text on ***quality title*** segments and renders them in italics
+// instead of showing the literal asterisks.
+function renderWithQualityTitles(text: string) {
+  const parts = text.split(/(\*\*\*.+?\*\*\*)/g);
+  return parts.map((part, i) => {
+    const match = part.match(/^\*\*\*(.+)\*\*\*$/);
+    return match ? (
+      <em key={i} className="font-semibold italic">
+        {match[1]}
+      </em>
+    ) : (
+      <span key={i}>{part}</span>
+    );
+  });
+}
+
 type DescriptionState =
   | { status: "idle" }
   | { status: "loading" }
@@ -136,7 +152,7 @@ export function ItemDetailsDialog({
                 )}
               >
                 {description.map((desc, i) => (
-                  <p key={i}>{desc}</p>
+                  <p key={i}>{renderWithQualityTitles(desc)}</p>
                 ))}
               </div>
 
