@@ -23,7 +23,7 @@ export default function ItemCard({
 }: ItemCardProps) {
   const rarity = item.tags.find(isRarity);
   const ringClass = rarityRingClass(rarity);
-
+  // Comment for commit test
   return (
     <article
       className={cn(
