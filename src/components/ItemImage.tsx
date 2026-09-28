@@ -1,8 +1,5 @@
-import { useEffect, useState } from "react";
 import { Item } from "@/data/items";
-import { useInView } from "@/hooks/useInView";
-import { getItemImageUrl, getItemCategoryVisual } from "@/lib/itemImages";
-import { fetchItemImage } from "@/lib/api";
+import { getItemCategoryVisual } from "@/lib/itemImages";
 import { isRarity } from "@/lib/filters";
 import { cn } from "@/lib/utils";
 
@@ -51,45 +48,6 @@ export default function ItemImage({
   variant = "card",
   className,
 }: ItemImageProps) {
-  const [containerRef, isInView] = useInView<HTMLDivElement>({
-    rootMargin: "200px",
-    once: true,
-  });
-
-  const [imageUrl, setImageUrl] = useState<string | null>(() => getItemImageUrl(item));
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
-  const [isLoadingUrl, setIsLoadingUrl] = useState(false);
-
-  // When element enters view or item changes, ensure imageUrl is resolved
-  useEffect(() => {
-    const direct = getItemImageUrl(item);
-    if (direct) {
-      setImageUrl(direct);
-      return;
-    }
-
-    if (!isInView) return;
-
-    if (item.slug) {
-      const controller = new AbortController();
-      setIsLoadingUrl(true);
-      fetchItemImage(item.slug, controller.signal)
-        .then((url) => {
-          if (!controller.signal.aborted) {
-            setImageUrl(url);
-          }
-        })
-        .finally(() => {
-          if (!controller.signal.aborted) {
-            setIsLoadingUrl(false);
-          }
-        });
-
-      return () => controller.abort();
-    }
-  }, [isInView, item]);
-
   const rarity = item.tags.find(isRarity);
   const glow = rarityGlowClass(rarity);
   const badgeStyle = rarityBadgeClass(rarity);
@@ -101,7 +59,6 @@ export default function ItemImage({
 
   return (
     <div
-      ref={containerRef}
       className={cn(
         "relative flex items-center justify-center overflow-hidden bg-gradient-to-b from-muted/50 via-muted/20 to-card select-none",
         isDetail
@@ -119,70 +76,30 @@ export default function ItemImage({
         aria-hidden="true"
       />
 
-      {/* 1. If not yet scrolled into view: render lightweight placeholder */}
-      {!isInView && (
-        <div className="absolute inset-0 bg-muted/20" aria-hidden="true" />
-      )}
-
-      {/* 2. Loading state: skeleton shimmer */}
-      {isInView && (isLoadingUrl || (imageUrl && !isLoaded && !hasError)) && (
+      {/* Category icon (images have been removed on purpose) */}
+      <div
+        className="relative z-10 flex flex-col items-center justify-center gap-1.5 p-4 text-center"
+        title={`${item.name} (${category.label})`}
+      >
         <div
-          className="absolute inset-0 flex animate-pulse items-center justify-center bg-muted/30"
-          aria-hidden="true"
+          className={cn(
+            "flex items-center justify-center rounded-full border shadow-inner transition-transform duration-300",
+            badgeStyle,
+            isDetail ? "p-4" : "p-3 group-hover:scale-110",
+          )}
         >
           <CategoryIcon
             className={cn(
-              "text-muted-foreground/20 animate-pulse",
-              isDetail ? "size-14" : "size-8",
+              "transition-colors duration-300",
+              isDetail ? "size-10" : "size-7",
             )}
+            aria-hidden="true"
           />
         </div>
-      )}
-
-      {/* 3. Image when available and in view */}
-      {isInView && imageUrl && !hasError && (
-        <img
-          src={imageUrl}
-          alt={item.name}
-          loading="lazy"
-          onLoad={() => setIsLoaded(true)}
-          onError={() => setHasError(true)}
-          className={cn(
-            "object-contain transition-all duration-300 drop-shadow-md",
-            isDetail
-              ? "max-h-44 sm:max-h-52 max-w-full p-2"
-              : "max-h-32 max-w-full p-2 group-hover:scale-105",
-            isLoaded ? "opacity-100" : "opacity-0",
-          )}
-        />
-      )}
-
-      {/* 4. Fallback category visual when no image or image failed */}
-      {isInView && (!imageUrl || hasError) && !isLoadingUrl && (
-        <div
-          className="relative z-10 flex flex-col items-center justify-center gap-1.5 p-4 text-center"
-          title={`${item.name} (${category.label})`}
-        >
-          <div
-            className={cn(
-              "flex items-center justify-center rounded-full border shadow-inner transition-transform duration-300",
-              badgeStyle,
-              isDetail ? "p-4" : "p-3 group-hover:scale-110",
-            )}
-          >
-            <CategoryIcon
-              className={cn(
-                "transition-colors duration-300",
-                isDetail ? "size-10" : "size-7",
-              )}
-              aria-hidden="true"
-            />
-          </div>
-          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
-            {category.label}
-          </span>
-        </div>
-      )}
+        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+          {category.label}
+        </span>
+      </div>
     </div>
   );
 }

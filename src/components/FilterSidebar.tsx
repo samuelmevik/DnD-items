@@ -7,6 +7,7 @@ import {
   tagCount,
 } from "@/lib/filters";
 import { cn } from "@/lib/utils";
+import { CloakIcon } from "@/components/CloakIcon";
 import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -14,7 +15,6 @@ import {
   X,
   Shield,
   ShieldHalf,
-  Shirt,
   FlaskConical,
   CircleDot,
   Slash,
@@ -24,8 +24,13 @@ import {
   Wrench,
   Swords,
   Sparkles,
-  type LucideIcon,
 } from "lucide-react";
+import type { ComponentType } from "react";
+
+type IconComponent = ComponentType<{
+  className?: string;
+  "aria-hidden"?: boolean;
+}>;
 
 type FilterSidebarProps = {
   items: Item[];
@@ -67,9 +72,9 @@ const RARITY_PILL_INACTIVE: Record<string, string> = {
     "border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100 dark:border-rose-700 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-950/70",
 };
 
-const CATEGORY_ICONS: Record<string, LucideIcon> = {
+const CATEGORY_ICONS: Record<string, IconComponent> = {
   Armor: ShieldHalf,
-  Cloak: Shirt,
+  Cloak: CloakIcon,
   Potion: FlaskConical,
   Ring: CircleDot,
   Rod: Slash,
@@ -101,7 +106,7 @@ type PillProps = {
   onToggle: () => void;
   activeClass: string;
   inactiveClass?: string;
-  icon?: LucideIcon;
+  icon?: IconComponent;
 };
 
 function Pill({

@@ -7,6 +7,7 @@ interface SearchBarProps {
   onSearchChange: (term: string) => void;
   inputRef?: React.RefObject<HTMLInputElement>;
   className?: string;
+  placeholder?: string;
 }
 
 export default function SearchBar({
@@ -14,6 +15,7 @@ export default function SearchBar({
   onSearchChange,
   inputRef,
   className,
+  placeholder = "Search items by name or description…",
 }: SearchBarProps) {
   return (
     <div className={cn("relative w-full", className)}>
@@ -24,7 +26,7 @@ export default function SearchBar({
       <Input
         ref={inputRef}
         type="text"
-        placeholder="Search items by name or description…"
+        placeholder={placeholder}
         value={searchTerm}
         onChange={(e) => onSearchChange(e.target.value)}
         onKeyDown={(e) => {

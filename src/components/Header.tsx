@@ -2,6 +2,9 @@ import { Filter } from "lucide-react";
 import { ReactNode } from "react";
 import { DarkModeToggle } from "./DarkModeToggle";
 import SearchBar from "./SearchBar";
+import { cn } from "@/lib/utils";
+
+export type CatalogTab = "items" | "spells";
 
 type HeaderProps = {
   searchTerm: string;
@@ -10,7 +13,15 @@ type HeaderProps = {
   onOpenMobileFilters: () => void;
   activeFilterCount: number;
   rightSlot?: ReactNode;
+  activeTab: CatalogTab;
+  onTabChange: (tab: CatalogTab) => void;
+  searchPlaceholder?: string;
 };
+
+const TABS: { key: CatalogTab; label: string }[] = [
+  { key: "items", label: "Items" },
+  { key: "spells", label: "Spells" },
+];
 
 export function Header({
   searchTerm,
@@ -19,13 +30,41 @@ export function Header({
   onOpenMobileFilters,
   activeFilterCount,
   rightSlot,
+  activeTab,
+  onTabChange,
+  searchPlaceholder,
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="mx-auto flex max-w-7xl items-center gap-3 p-3 md:gap-4 md:p-4">
         <h1 className="hidden text-lg font-semibold tracking-tight md:block">
-          D&D Item Catalog
+          D&D Catalog
         </h1>
+
+        <div
+          role="tablist"
+          aria-label="Catalog section"
+          className="flex items-center gap-1 rounded-full border border-border bg-background p-1"
+        >
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              onClick={() => onTabChange(tab.key)}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
+                activeTab === tab.key
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         <button
           type="button"
           onClick={onOpenMobileFilters}
@@ -45,6 +84,7 @@ export function Header({
             inputRef={searchInputRef}
             searchTerm={searchTerm}
             onSearchChange={onSearchChange}
+            placeholder={searchPlaceholder}
           />
         </div>
         {rightSlot}
