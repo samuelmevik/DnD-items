@@ -25,12 +25,9 @@ import {
   Swords,
   Sparkles,
 } from "lucide-react";
-import type { ComponentType } from "react";
+import type { ComponentType, SVGProps } from "react";
 
-type IconComponent = ComponentType<{
-  className?: string;
-  "aria-hidden"?: boolean;
-}>;
+type IconComponent = ComponentType<SVGProps<SVGSVGElement>>;
 
 type FilterSidebarProps = {
   items: Item[];

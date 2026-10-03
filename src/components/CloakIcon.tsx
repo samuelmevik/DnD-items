@@ -1,10 +1,7 @@
-type CloakIconProps = {
-  className?: string;
-  "aria-hidden"?: boolean;
-};
+import type { SVGProps } from "react";
 
 /** Hooded cloak icon, drawn in the same style as the lucide icons. */
-export function CloakIcon({ className, ...rest }: CloakIconProps) {
+export function CloakIcon({ className, ...rest }: SVGProps<SVGSVGElement>) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
