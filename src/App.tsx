@@ -30,6 +30,12 @@ import { SpellResultsHeader } from "./components/SpellResultsHeader";
 import { SpellDetailsDialog } from "./components/SpellDetailsDialog";
 import { Spinner } from "./components/Spinner";
 
+// Bundled background images — Vite resolves these to hashed URLs at build
+// time, so they ship with the site for every visitor. Replace these two
+// files in src/assets/ with your own art (any image format works).
+import itemsBackground from "./assets/items-background.jpg";
+import spellsBackground from "./assets/spells-background.jpg";
+
 const defaultFilterState: FilterState = {
   search: "",
   rarities: [],
@@ -84,6 +90,13 @@ function App() {
     isFavorite: isSpellFavorite,
   } = useSpellFavorites();
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
+
+  // Used when a spell name is clicked inside an item's description: close
+  // the item dialog and open that spell's dialog instead.
+  const handleSelectSpellFromItem = useCallback((spell: Spell) => {
+    setSelectedItem(null);
+    setSelectedSpell(spell);
+  }, []);
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -190,7 +203,18 @@ function App() {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen text-foreground">
+      {/* Background image, swapped per tab. Fixed so it doesn't scroll with content. */}
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat transition-[background-image] duration-300"
+        style={{
+          backgroundImage: `url(${activeTab === "items" ? itemsBackground : spellsBackground})`,
+        }}
+      />
+      {/* Tints the image so cards/text stay readable in both light and dark mode */}
+      <div aria-hidden="true" className="fixed inset-0 -z-10 bg-background/60" />
+
       <Header
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
@@ -314,6 +338,8 @@ function App() {
         onToggleFavorite={() => {
           if (selectedItem) toggleFavorite(selectedItem.id);
         }}
+        spells={spells}
+        onSelectSpell={handleSelectSpellFromItem}
       />
 
       <SpellDetailsDialog

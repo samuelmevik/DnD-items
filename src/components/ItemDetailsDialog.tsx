@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Star } from "lucide-react";
 import { Item } from "@/data/items";
+import { Spell } from "@/lib/spellsApi";
 import {
   Dialog,
   DialogContent,
@@ -18,22 +19,101 @@ type ItemDetailsDialogProps = {
   onOpenChange: (open: boolean) => void;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  spells: Spell[];
+  onSelectSpell: (spell: Spell) => void;
 };
 
 const formatPrice = (price: number) => `${price.toLocaleString()} gp`;
 
-// Splits text on ***quality title*** segments and renders them in italics
-// instead of showing the literal asterisks.
-function renderWithQualityTitles(text: string) {
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Builds a case-insensitive, whole-word regex that matches any of the given
+ * spell names, longest name first so e.g. "Mass Cure Wounds" wins over
+ * "Cure Wounds" when both would otherwise match.
+ */
+function useSpellMatcher(spells: Spell[]) {
+  return useMemo(() => {
+    if (spells.length === 0) return null;
+    const byLowerName = new Map(spells.map((s) => [s.name.toLowerCase(), s]));
+    const names = [...spells]
+      .map((s) => s.name)
+      .sort((a, b) => b.length - a.length)
+      .map(escapeRegExp);
+    const regex = new RegExp(`\\b(${names.join("|")})\\b`, "gi");
+    return { regex, byLowerName };
+  }, [spells]);
+}
+
+/**
+ * Splits plain text around any spell-name matches, turning each match into
+ * a clickable button that opens that spell's detail dialog.
+ */
+function linkifySpellNames(
+  text: string,
+  matcher: ReturnType<typeof useSpellMatcher>,
+  onSelectSpell: (spell: Spell) => void,
+  keyPrefix: string,
+): React.ReactNode[] {
+  if (!text || !matcher) return [text];
+
+  const { regex, byLowerName } = matcher;
+  regex.lastIndex = 0;
+
+  const nodes: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let i = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    const matchedText = match[0];
+    const spell = byLowerName.get(matchedText.toLowerCase());
+    if (!spell) continue;
+
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+    nodes.push(
+      <button
+        key={`${keyPrefix}-spell-${i++}`}
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelectSpell(spell);
+        }}
+        className="font-medium text-primary underline decoration-dotted underline-offset-2 hover:decoration-solid"
+      >
+        {matchedText}
+      </button>,
+    );
+    lastIndex = match.index + matchedText.length;
+  }
+
+  if (lastIndex < text.length) nodes.push(text.slice(lastIndex));
+  return nodes;
+}
+
+// Splits text on ***quality title*** segments (rendered bold+italic instead
+// of showing the literal asterisks), and within each segment, linkifies any
+// spell names so they can be clicked to open that spell's details.
+function renderDescriptionLine(
+  text: string,
+  lineKey: string,
+  matcher: ReturnType<typeof useSpellMatcher>,
+  onSelectSpell: (spell: Spell) => void,
+) {
   const parts = text.split(/(\*\*\*.+?\*\*\*)/g);
   return parts.map((part, i) => {
     const match = part.match(/^\*\*\*(.+)\*\*\*$/);
+    const segmentKey = `${lineKey}-${i}`;
     return match ? (
-      <em key={i} className="font-semibold italic">
-        {match[1]}
+      <em key={segmentKey} className="font-semibold italic">
+        {linkifySpellNames(match[1], matcher, onSelectSpell, segmentKey)}
       </em>
     ) : (
-      <span key={i}>{part}</span>
+      <span key={segmentKey}>
+        {linkifySpellNames(part, matcher, onSelectSpell, segmentKey)}
+      </span>
     );
   });
 }
@@ -82,8 +162,11 @@ export function ItemDetailsDialog({
   onOpenChange,
   isFavorite,
   onToggleFavorite,
+  spells,
+  onSelectSpell,
 }: ItemDetailsDialogProps) {
   const remote = useRemoteDescription(item);
+  const spellMatcher = useSpellMatcher(spells);
 
   const description =
     remote.status === "loaded" ? remote.desc : item?.description ?? [];
@@ -152,7 +235,9 @@ export function ItemDetailsDialog({
                 )}
               >
                 {description.map((desc, i) => (
-                  <p key={i}>{renderWithQualityTitles(desc)}</p>
+                  <p key={i}>
+                    {renderDescriptionLine(desc, `desc-${i}`, spellMatcher, onSelectSpell)}
+                  </p>
                 ))}
               </div>
 
