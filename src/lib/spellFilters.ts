@@ -1,4 +1,4 @@
-import { Spell } from "./spellsApi";
+import { Spell } from "../data/spells";
 
 export const SCHOOLS = [
   "Abjuration",
