@@ -1,5 +1,5 @@
 import { useId } from "react";
-import { Spell } from "@/lib/spellsApi";
+import { Spell } from "@/data/spells";
 import {
   CLASSES,
   LEVELS,

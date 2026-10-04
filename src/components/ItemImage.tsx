@@ -76,30 +76,45 @@ export default function ItemImage({
         aria-hidden="true"
       />
 
-      {/* Category icon (images have been removed on purpose) */}
-      <div
-        className="relative z-10 flex flex-col items-center justify-center gap-1.5 p-4 text-center"
-        title={`${item.name} (${category.label})`}
-      >
-        <div
+      {item.image ? (
+        // Hand-curated custom artwork, set directly in items.ts
+        <img
+          src={item.image}
+          alt={item.name}
+          loading="lazy"
           className={cn(
-            "flex items-center justify-center rounded-full border shadow-inner transition-transform duration-300",
-            badgeStyle,
-            isDetail ? "p-4" : "p-3 group-hover:scale-110",
+            "relative z-10 object-contain drop-shadow-md",
+            isDetail
+              ? "max-h-44 sm:max-h-52 max-w-full p-2"
+              : "max-h-32 max-w-full p-2 group-hover:scale-105 transition-transform duration-300",
           )}
+        />
+      ) : (
+        // Fallback: category icon (no automatic/API-sourced images by design)
+        <div
+          className="relative z-10 flex flex-col items-center justify-center gap-1.5 p-4 text-center"
+          title={`${item.name} (${category.label})`}
         >
-          <CategoryIcon
+          <div
             className={cn(
-              "transition-colors duration-300",
-              isDetail ? "size-10" : "size-7",
+              "flex items-center justify-center rounded-full border shadow-inner transition-transform duration-300",
+              badgeStyle,
+              isDetail ? "p-4" : "p-3 group-hover:scale-110",
             )}
-            aria-hidden="true"
-          />
+          >
+            <CategoryIcon
+              className={cn(
+                "transition-colors duration-300",
+                isDetail ? "size-10" : "size-7",
+              )}
+              aria-hidden="true"
+            />
+          </div>
+          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+            {category.label}
+          </span>
         </div>
-        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
-          {category.label}
-        </span>
-      </div>
+      )}
     </div>
   );
 }

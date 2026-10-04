@@ -7,6 +7,10 @@ export type Item = {
   price: number;
   notBasePrice?: boolean;
   tags: string[];
+  /** Optional custom artwork. Import an image from src/assets and pass its
+   *  resolved path here, or reference a path under public/. Falls back to
+   *  the category icon when omitted. */
+  image?: string;
 };
 
 type PartialItem = Omit<Item, "id">;

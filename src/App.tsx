@@ -17,7 +17,7 @@ import { ResultsHeader } from "./components/ResultsHeader";
 import { EmptyState } from "./components/EmptyState";
 import { ItemDetailsDialog } from "./components/ItemDetailsDialog";
 
-import { Spell, useSpells } from "./lib/spellsApi";
+import { Spell, spells } from "./data/spells";
 import {
   SpellFilterState,
   activeSpellFilterCount,
@@ -28,7 +28,6 @@ import SpellFilterSidebar from "./components/SpellFilterSidebar";
 import SpellList from "./components/SpellList";
 import { SpellResultsHeader } from "./components/SpellResultsHeader";
 import { SpellDetailsDialog } from "./components/SpellDetailsDialog";
-import { Spinner } from "./components/Spinner";
 
 // Bundled background images — Vite resolves these to hashed URLs at build
 // time, so they ship with the site for every visitor. Replace these two
@@ -78,12 +77,6 @@ function App() {
     () => setSpellState(defaultSpellFilterState),
     [],
   );
-  const {
-    spells,
-    status: spellsStatus,
-    progress: spellsProgress,
-    error: spellsError,
-  } = useSpells();
   const {
     favorites: spellFavorites,
     toggle: toggleSpellFavorite,
@@ -213,7 +206,7 @@ function App() {
         }}
       />
       {/* Tints the image so cards/text stay readable in both light and dark mode */}
-      <div aria-hidden="true" className="fixed inset-0 -z-10 bg-background/60" />
+      <div aria-hidden="true" className="fixed inset-0 -z-10 bg-background/90" />
 
       <Header
         searchTerm={searchTerm}
@@ -281,24 +274,6 @@ function App() {
                 />
               )}
             </>
-          ) : spellsStatus === "loading" && spells.length === 0 ? (
-            <div className="flex min-h-[50vh] flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
-              <Spinner />
-              <p>
-                Loading spells from the D&D 5e API…
-                {spellsProgress.total > 0
-                  ? ` (${spellsProgress.loaded}/${spellsProgress.total})`
-                  : ""}
-              </p>
-              <p className="max-w-xs text-center text-xs">
-                This only happens once per browser — spells are cached locally
-                after the first load.
-              </p>
-            </div>
-          ) : spellsStatus === "error" ? (
-            <div className="flex min-h-[50vh] flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
-              <p>Couldn't load spells{spellsError ? `: ${spellsError}` : "."}</p>
-            </div>
           ) : (
             <>
               <SpellResultsHeader

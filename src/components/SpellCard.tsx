@@ -1,5 +1,5 @@
 import { Star } from "lucide-react";
-import { Spell } from "@/lib/spellsApi";
+import { Spell } from "@/data/spells";
 import { levelLabel } from "@/lib/spellFilters";
 import { schoolStyle, schoolIcon } from "@/lib/schoolStyles";
 import { Tag } from "./Tag";

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Star } from "lucide-react";
 import { Item } from "@/data/items";
-import { Spell } from "@/lib/spellsApi";
+import { Spell } from "@/data/spells";
 import {
   Dialog,
   DialogContent,
@@ -102,9 +102,10 @@ function renderDescriptionLine(
   matcher: ReturnType<typeof useSpellMatcher>,
   onSelectSpell: (spell: Spell) => void,
 ) {
-  const parts = text.split(/(\*\*\*.+?\*\*\*)/g);
+  const parts = text.split(/(\*\*\*.+?\*\*\*|\*\*_.+?_\*\*)/g);
   return parts.map((part, i) => {
-    const match = part.match(/^\*\*\*(.+)\*\*\*$/);
+    const match =
+      part.match(/^\*\*\*(.+)\*\*\*$/) ?? part.match(/^\*\*_(.+)_\*\*$/);
     const segmentKey = `${lineKey}-${i}`;
     return match ? (
       <em key={segmentKey} className="font-semibold italic">

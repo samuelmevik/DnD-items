@@ -1,4 +1,4 @@
-import { Spell } from "@/lib/spellsApi";
+import { Spell } from "@/data/spells";
 import SpellCard from "./SpellCard";
 
 type SpellListProps = {
