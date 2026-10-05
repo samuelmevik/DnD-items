@@ -10,7 +10,7 @@ import { highestPrice, Item, items, lowestPrice } from "./data/items";
 import { activeFilterCount, FilterState, filterItems } from "./lib/filters";
 import { useFavorites } from "./lib/favorites";
 import { useCatalogUrlState } from "./lib/urlState";
-import { Header, CatalogTab } from "./components/Header";
+import { Header } from "./components/Header";
 import FilterSidebar from "./components/FilterSidebar";
 import ItemList from "./components/ItemList";
 import { ResultsHeader } from "./components/ResultsHeader";
