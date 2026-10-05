@@ -9,7 +9,7 @@ import {
 import { highestPrice, Item, items, lowestPrice } from "./data/items";
 import { activeFilterCount, FilterState, filterItems } from "./lib/filters";
 import { useFavorites } from "./lib/favorites";
-import { useFilterState } from "./lib/urlState";
+import { useCatalogUrlState } from "./lib/urlState";
 import { Header, CatalogTab } from "./components/Header";
 import FilterSidebar from "./components/FilterSidebar";
 import ItemList from "./components/ItemList";
@@ -57,32 +57,31 @@ const defaultSpellFilterState: SpellFilterState = {
 };
 
 function App() {
-  const [activeTab, setActiveTab] = useState<CatalogTab>("items");
+  const {
+    activeTab,
+    setActiveTab,
+    itemState: state,
+    updateItemState: updateState,
+    resetItemState: resetState,
+    spellState,
+    updateSpellState,
+    resetSpellState,
+  } = useCatalogUrlState(defaultFilterState, defaultSpellFilterState);
 
-  // ---- Items state (unchanged from before) ----
-  const [state, updateState, resetState] = useFilterState(defaultFilterState);
   const { favorites, toggle: toggleFavorite, isFavorite } = useFavorites();
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
-  // ---- Spells state ----
-  const [spellState, setSpellState] = useState<SpellFilterState>(
-    defaultSpellFilterState,
-  );
-  const updateSpellState = useCallback(
-    (patch: Partial<SpellFilterState>) =>
-      setSpellState((s) => ({ ...s, ...patch })),
-    [],
-  );
-  const resetSpellState = useCallback(
-    () => setSpellState(defaultSpellFilterState),
-    [],
-  );
   const {
     favorites: spellFavorites,
     toggle: toggleSpellFavorite,
     isFavorite: isSpellFavorite,
   } = useSpellFavorites();
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
+
+  useEffect(() => {
+    document.title =
+      activeTab === "items" ? "D&D Magic Items Catalog" : "D&D Spells Catalog";
+  }, [activeTab]);
 
   // Used when a spell name is clicked inside an item's description: close
   // the item dialog and open that spell's dialog instead.

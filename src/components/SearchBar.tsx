@@ -8,6 +8,7 @@ interface SearchBarProps {
   inputRef?: React.RefObject<HTMLInputElement>;
   className?: string;
   placeholder?: string;
+  ariaLabel?: string;
 }
 
 export default function SearchBar({
@@ -16,6 +17,7 @@ export default function SearchBar({
   inputRef,
   className,
   placeholder = "Search items by name or description…",
+  ariaLabel,
 }: SearchBarProps) {
   return (
     <div className={cn("relative w-full", className)}>
@@ -35,7 +37,7 @@ export default function SearchBar({
             onSearchChange("");
           }
         }}
-        aria-label="Search items"
+        aria-label={ariaLabel ?? placeholder}
         className="h-10 w-full px-9"
       />
       {searchTerm && (
