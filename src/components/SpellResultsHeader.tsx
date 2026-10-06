@@ -6,6 +6,8 @@ import {
   Settings,
   Share2,
   Check,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { SpellSortKey } from "@/lib/spellFilters";
 import { SpellSortMenu } from "./SpellSortMenu";
@@ -28,6 +30,8 @@ type SpellResultsHeaderProps = {
   onSelectActiveList?: (id: string) => void;
   onOpenListManager?: () => void;
   onShareActiveList?: () => void;
+  viewMode?: "grid" | "table";
+  onViewModeChange?: (mode: "grid" | "table") => void;
 };
 
 export function SpellResultsHeader({
@@ -46,6 +50,8 @@ export function SpellResultsHeader({
   onSelectActiveList,
   onOpenListManager,
   onShareActiveList,
+  viewMode = "grid",
+  onViewModeChange,
 }: SpellResultsHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -197,6 +203,36 @@ export function SpellResultsHeader({
             Clear filters
           </button>
         )}
+
+        {onViewModeChange && (
+          <div className="inline-flex items-center rounded-md border border-border bg-background p-0.5 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => onViewModeChange("grid")}
+              aria-label="Grid view"
+              title="Card Grid view"
+              className={cn(
+                "rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground",
+                viewMode === "grid" && "bg-accent text-accent-foreground shadow-2xs",
+              )}
+            >
+              <LayoutGrid className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewModeChange("table")}
+              aria-label="Table view"
+              title="Compact Table view"
+              className={cn(
+                "rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground",
+                viewMode === "table" && "bg-accent text-accent-foreground shadow-2xs",
+              )}
+            >
+              <List className="size-4" />
+            </button>
+          </div>
+        )}
+
         <SpellSortMenu value={sort} onChange={onSortChange} />
       </div>
     </div>

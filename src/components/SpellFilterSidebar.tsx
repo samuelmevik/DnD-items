@@ -4,11 +4,14 @@ import {
   CLASSES,
   LEVELS,
   SCHOOLS,
+  CASTING_TIMES,
+  CastingTimeCategory,
   SpellFilterState,
   classCount,
   levelCount,
   levelLabel,
   schoolCount,
+  castingTimeCount,
 } from "@/lib/spellFilters";
 import { schoolStyle } from "@/lib/schoolStyles";
 import { cn } from "@/lib/utils";
@@ -156,7 +159,26 @@ function SpellFilterContent({
         </div>
       </Section>
 
-      <Section title="Casting">
+      <Section title="Casting Time">
+        <div className="flex flex-wrap gap-1.5">
+          {CASTING_TIMES.map((cat) => (
+            <Pill
+              key={cat}
+              label={cat}
+              active={state.castingTimes.includes(cat)}
+              count={castingTimeCount(spells, state, favorites, cat)}
+              onToggle={() =>
+                onChange({
+                  castingTimes: toggleValue(state.castingTimes, cat),
+                })
+              }
+              activeClass="border-primary bg-primary text-primary-foreground"
+            />
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Properties">
         <div className="space-y-2.5">
           <div className="flex items-center gap-2">
             <Checkbox

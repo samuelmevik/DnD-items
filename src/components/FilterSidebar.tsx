@@ -5,6 +5,7 @@ import {
   FilterState,
   RARITIES,
   tagCount,
+  attunementCount,
 } from "@/lib/filters";
 import { cn } from "@/lib/utils";
 import { CloakIcon } from "@/components/CloakIcon";
@@ -320,6 +321,34 @@ function FilterContent({
               inactiveClass={RARITY_PILL_INACTIVE[tag]}
             />
           ))}
+        </div>
+      </Section>
+
+      <Section title="Attunement">
+        <div className="flex flex-wrap gap-1.5">
+          <Pill
+            label="Requires Attunement"
+            active={state.attunement === "requires"}
+            count={attunementCount(items, state, favorites, "requires")}
+            onToggle={() =>
+              onChange({
+                attunement: state.attunement === "requires" ? "all" : "requires",
+              })
+            }
+            activeClass="border-purple-500 bg-purple-200 text-purple-950 dark:border-purple-600 dark:bg-purple-900/70 dark:text-purple-100"
+            inactiveClass="border-purple-200 bg-purple-50 text-purple-800 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-300 dark:hover:bg-purple-900/60"
+          />
+          <Pill
+            label="No Attunement"
+            active={state.attunement === "none"}
+            count={attunementCount(items, state, favorites, "none")}
+            onToggle={() =>
+              onChange({
+                attunement: state.attunement === "none" ? "all" : "none",
+              })
+            }
+            activeClass="border-primary bg-primary text-primary-foreground"
+          />
         </div>
       </Section>
 

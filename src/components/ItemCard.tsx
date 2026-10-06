@@ -1,6 +1,6 @@
 import { Star } from "lucide-react";
 import { Item } from "@/data/items";
-import { isRarity } from "@/lib/filters";
+import { isRarity, itemRequiresAttunement } from "@/lib/filters";
 import { cn } from "@/lib/utils";
 import { Tag } from "./Tag";
 import { rarityRingClass } from "@/lib/rarityStyles";
@@ -23,7 +23,8 @@ export default function ItemCard({
 }: ItemCardProps) {
   const rarity = item.tags.find(isRarity);
   const ringClass = rarityRingClass(rarity);
-  // Comment for commit test
+  const requiresAttunement = itemRequiresAttunement(item);
+
   return (
     <article
       className={cn(
@@ -53,6 +54,11 @@ export default function ItemCard({
             {item.tags.map((tag) => (
               <Tag key={tag} tag={tag} />
             ))}
+            {requiresAttunement && (
+              <span className="inline-flex items-center rounded-md border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-800 dark:border-purple-800 dark:bg-purple-950/60 dark:text-purple-300">
+                Attunement
+              </span>
+            )}
           </div>
 
           <div className="flex items-baseline gap-1.5 pt-1">

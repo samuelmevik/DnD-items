@@ -7,10 +7,17 @@ import {
   X,
   Scroll,
 } from "lucide-react";
-import type { SharedListData } from "@/lib/customLists";
+import {
+  SharedListData,
+  calculateListGoldTotal,
+  calculateListAttunementCount,
+} from "@/lib/customLists";
+import type { Item } from "@/data/items";
+import { cn } from "@/lib/utils";
 
 type SharedListBannerProps = {
   sharedList: SharedListData;
+  itemsMap?: Map<number, Item>;
   onSaveToLists: () => void;
   onDismiss: () => void;
   onCopyShareLink: () => void;
@@ -20,6 +27,7 @@ type SharedListBannerProps = {
 
 export function SharedListBanner({
   sharedList,
+  itemsMap,
   onSaveToLists,
   onDismiss,
   onCopyShareLink,
@@ -43,6 +51,10 @@ export function SharedListBanner({
 
   const totalItems = sharedList.itemIds.length;
   const totalSpells = sharedList.spellIds.length;
+  const totalGold = itemsMap ? calculateListGoldTotal(sharedList, itemsMap) : 0;
+  const attuneCount = itemsMap
+    ? calculateListAttunementCount(sharedList, itemsMap)
+    : 0;
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-primary/30 bg-primary/10 p-4 shadow-sm backdrop-blur-xs transition-all">
@@ -60,6 +72,24 @@ export function SharedListBanner({
                 {totalItems} {totalItems === 1 ? "item" : "items"}
                 {totalSpells > 0 && ` · ${totalSpells} ${totalSpells === 1 ? "spell" : "spells"}`}
               </span>
+              {totalGold > 0 && (
+                <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:text-amber-300">
+                  💰 {totalGold.toLocaleString()} gp
+                </span>
+              )}
+              {attuneCount > 0 && (
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                    attuneCount > 3
+                      ? "bg-rose-500/20 text-rose-700 dark:text-rose-300"
+                      : "bg-purple-500/20 text-purple-700 dark:text-purple-300",
+                  )}
+                >
+                  🔮 {attuneCount}/3 Attuned
+                  {attuneCount > 3 ? " (Exceeds limit)" : ""}
+                </span>
+              )}
             </div>
             <h2 className="text-lg font-bold leading-tight text-foreground">
               {sharedList.name}

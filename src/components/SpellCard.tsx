@@ -58,6 +58,11 @@ export default function SpellCard({
             >
               {levelLabel(spell.level)} · {spell.school}
             </span>
+            {spell.castingTime && (
+              <span className="inline-flex items-center rounded-md border border-border bg-muted/60 px-2 py-0.5 text-xs text-muted-foreground">
+                {spell.castingTime}
+              </span>
+            )}
             {spell.ritual && <Tag tag="Ritual" />}
             {spell.concentration && <Tag tag="Concentration" />}
           </div>

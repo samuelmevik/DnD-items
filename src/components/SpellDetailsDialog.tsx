@@ -1,4 +1,5 @@
-import { Star } from "lucide-react";
+import { useState } from "react";
+import { Star, Share2, Copy, Check } from "lucide-react";
 import { Spell } from "@/data/spells";
 import { levelLabel } from "@/lib/spellFilters";
 import { schoolStyle } from "@/lib/schoolStyles";
@@ -11,7 +12,12 @@ import {
 import { Tag } from "./Tag";
 import { cn } from "@/lib/utils";
 import { AddToListMenu } from "./AddToListMenu";
-import type { CustomList } from "@/lib/customLists";
+import {
+  CustomList,
+  copyToClipboard,
+  generateSingleSpellMarkdown,
+} from "@/lib/customLists";
+import { linkifyDice, DiceRollResult } from "@/lib/diceRoller";
 
 type SpellDetailsDialogProps = {
   spell: Spell | null;
@@ -28,6 +34,8 @@ type SpellDetailsDialogProps = {
     initialItemIds?: number[],
     initialSpellIds?: number[],
   ) => void;
+  onRollDice?: (res: DiceRollResult) => void;
+  onToast?: (msg: string) => void;
 };
 
 export function SpellDetailsDialog({
@@ -41,8 +49,41 @@ export function SpellDetailsDialog({
   onToggleItemInList,
   onToggleSpellInList,
   onCreateList,
+  onRollDice,
+  onToast,
 }: SpellDetailsDialogProps) {
   const style = spell ? schoolStyle(spell.school) : null;
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedMarkdown, setCopiedMarkdown] = useState(false);
+
+  const handleCopyLink = async () => {
+    if (!spell) return;
+    const url = new URL(window.location.origin + window.location.pathname);
+    url.searchParams.set("tab", "spells");
+    const slug = spell.index || spell.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    url.searchParams.set("spell", slug);
+    const ok = await copyToClipboard(url.toString());
+    if (ok) {
+      setCopiedLink(true);
+      onToast?.(`Link to "${spell.name}" copied!`);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
+  const handleCopyMarkdown = async () => {
+    if (!spell) return;
+    const url = new URL(window.location.origin + window.location.pathname);
+    url.searchParams.set("tab", "spells");
+    const slug = spell.index || spell.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    url.searchParams.set("spell", slug);
+    const md = generateSingleSpellMarkdown(spell, url.toString());
+    const ok = await copyToClipboard(md);
+    if (ok) {
+      setCopiedMarkdown(true);
+      onToast?.(`Discord markdown for "${spell.name}" copied!`);
+      setTimeout(() => setCopiedMarkdown(false), 2000);
+    }
+  };
 
   return (
     <Dialog open={spell != null} onOpenChange={onOpenChange}>
@@ -53,6 +94,34 @@ export function SpellDetailsDialog({
               <div className="flex items-start justify-between gap-4 pr-8">
                 <DialogTitle className="text-xl">{spell.name}</DialogTitle>
                 <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    title="Copy direct link to this spell"
+                    aria-label="Copy spell link"
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    {copiedLink ? (
+                      <Check className="size-4 text-green-500" />
+                    ) : (
+                      <Share2 className="size-4" />
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyMarkdown}
+                    title="Copy Discord markdown for this spell"
+                    aria-label="Copy spell markdown"
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    {copiedMarkdown ? (
+                      <Check className="size-4 text-green-500" />
+                    ) : (
+                      <Copy className="size-4" />
+                    )}
+                  </button>
+
                   {lists && isSpellInList && onToggleSpellInList && onCreateList && (
                     <AddToListMenu
                       spellId={spell.id}
@@ -124,7 +193,9 @@ export function SpellDetailsDialog({
 
               <div className="space-y-2 text-foreground/90">
                 {spell.description.map((desc, i) => (
-                  <p key={i}>{desc}</p>
+                  <p key={i}>
+                    {linkifyDice(desc, onRollDice, `spell-desc-${i}`)}
+                  </p>
                 ))}
               </div>
 
@@ -134,7 +205,9 @@ export function SpellDetailsDialog({
                     At Higher Levels
                   </h4>
                   {spell.higherLevel.map((desc, i) => (
-                    <p key={i}>{desc}</p>
+                    <p key={i}>
+                      {linkifyDice(desc, onRollDice, `spell-higher-${i}`)}
+                    </p>
                   ))}
                 </div>
               )}

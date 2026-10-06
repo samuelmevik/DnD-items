@@ -6,6 +6,8 @@ import {
   Settings,
   Share2,
   Check,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { SortKey } from "@/lib/filters";
 import { SortMenu } from "./SortMenu";
@@ -28,6 +30,10 @@ type ResultsHeaderProps = {
   onSelectActiveList?: (id: string) => void;
   onOpenListManager?: () => void;
   onShareActiveList?: () => void;
+  viewMode?: "grid" | "table";
+  onViewModeChange?: (mode: "grid" | "table") => void;
+  totalGold?: number;
+  attunementCount?: number;
 };
 
 export function ResultsHeader({
@@ -46,6 +52,10 @@ export function ResultsHeader({
   onSelectActiveList,
   onOpenListManager,
   onShareActiveList,
+  viewMode = "grid",
+  onViewModeChange,
+  totalGold,
+  attunementCount,
 }: ResultsHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -66,13 +76,32 @@ export function ResultsHeader({
       <div
         aria-live="polite"
         aria-atomic="true"
-        className="text-sm text-muted-foreground"
+        className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"
       >
-        Showing{" "}
-        <span className="font-medium text-foreground">
-          {count.toLocaleString()}
-        </span>{" "}
-        of {total.toLocaleString()} items
+        <span>
+          Showing{" "}
+          <span className="font-medium text-foreground">
+            {count.toLocaleString()}
+          </span>{" "}
+          of {total.toLocaleString()} items
+        </span>
+        {totalGold !== undefined && totalGold > 0 && (
+          <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
+            💰 {totalGold.toLocaleString()} gp
+          </span>
+        )}
+        {attunementCount !== undefined && attunementCount > 0 && (
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-xs font-semibold",
+              attunementCount > 3
+                ? "bg-rose-500/15 text-rose-700 dark:text-rose-300"
+                : "bg-purple-500/15 text-purple-700 dark:text-purple-300",
+            )}
+          >
+            🔮 {attunementCount}/3 attuned
+          </span>
+        )}
       </div>
       <div className="flex flex-wrap items-center gap-2">
         {/* Custom Lists Selector & Filter */}
@@ -197,6 +226,36 @@ export function ResultsHeader({
             Clear filters
           </button>
         )}
+
+        {onViewModeChange && (
+          <div className="inline-flex items-center rounded-md border border-border bg-background p-0.5 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => onViewModeChange("grid")}
+              aria-label="Grid view"
+              title="Card Grid view"
+              className={cn(
+                "rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground",
+                viewMode === "grid" && "bg-accent text-accent-foreground shadow-2xs",
+              )}
+            >
+              <LayoutGrid className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewModeChange("table")}
+              aria-label="Table view"
+              title="Compact Table view"
+              className={cn(
+                "rounded p-1.5 text-muted-foreground transition-colors hover:text-foreground",
+                viewMode === "table" && "bg-accent text-accent-foreground shadow-2xs",
+              )}
+            >
+              <List className="size-4" />
+            </button>
+          </div>
+        )}
+
         <SortMenu value={sort} onChange={onSortChange} />
       </div>
     </div>

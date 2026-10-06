@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Star } from "lucide-react";
+import { Star, Share2, Copy, Check } from "lucide-react";
 import { Item } from "@/data/items";
 import { Spell } from "@/data/spells";
 import {
@@ -14,7 +14,13 @@ import ItemImage from "./ItemImage";
 import { cn } from "@/lib/utils";
 import { API_ATTRIBUTION, fetchItemDescription } from "@/lib/api";
 import { AddToListMenu } from "./AddToListMenu";
-import type { CustomList } from "@/lib/customLists";
+import {
+  CustomList,
+  copyToClipboard,
+  generateSingleItemMarkdown,
+} from "@/lib/customLists";
+import { itemRequiresAttunement, itemAttunementDetail } from "@/lib/filters";
+import { linkifyDice, DiceRollResult } from "@/lib/diceRoller";
 
 type ItemDetailsDialogProps = {
   item: Item | null;
@@ -33,6 +39,8 @@ type ItemDetailsDialogProps = {
     initialItemIds?: number[],
     initialSpellIds?: number[],
   ) => void;
+  onRollDice?: (res: DiceRollResult) => void;
+  onToast?: (msg: string) => void;
 };
 
 const formatPrice = (price: number) => `${price.toLocaleString()} gp`;
@@ -58,16 +66,17 @@ function useSpellMatcher(spells: Spell[]) {
 }
 
 /**
- * Splits plain text around any spell-name matches, turning each match into
- * a clickable button that opens that spell's detail dialog.
+ * Splits plain text around any spell-name matches and dice expressions
  */
-function linkifySpellNames(
+function linkifySpellAndDice(
   text: string,
   matcher: ReturnType<typeof useSpellMatcher>,
   onSelectSpell: (spell: Spell) => void,
+  onRollDice: ((res: DiceRollResult) => void) | undefined,
   keyPrefix: string,
 ): React.ReactNode[] {
-  if (!text || !matcher) return [text];
+  if (!text) return [text];
+  if (!matcher) return linkifyDice(text, onRollDice, keyPrefix);
 
   const { regex, byLowerName } = matcher;
   regex.lastIndex = 0;
@@ -83,7 +92,13 @@ function linkifySpellNames(
     if (!spell) continue;
 
     if (match.index > lastIndex) {
-      nodes.push(text.slice(lastIndex, match.index));
+      nodes.push(
+        ...linkifyDice(
+          text.slice(lastIndex, match.index),
+          onRollDice,
+          `${keyPrefix}-pre-${i}`,
+        ),
+      );
     }
     nodes.push(
       <button
@@ -101,18 +116,23 @@ function linkifySpellNames(
     lastIndex = match.index + matchedText.length;
   }
 
-  if (lastIndex < text.length) nodes.push(text.slice(lastIndex));
+  if (lastIndex < text.length) {
+    nodes.push(
+      ...linkifyDice(text.slice(lastIndex), onRollDice, `${keyPrefix}-post`),
+    );
+  }
   return nodes;
 }
 
 // Splits text on ***quality title*** segments (rendered bold+italic instead
 // of showing the literal asterisks), and within each segment, linkifies any
-// spell names so they can be clicked to open that spell's details.
+// spell names and dice expressions.
 function renderDescriptionLine(
   text: string,
   lineKey: string,
   matcher: ReturnType<typeof useSpellMatcher>,
   onSelectSpell: (spell: Spell) => void,
+  onRollDice?: (res: DiceRollResult) => void,
 ) {
   const parts = text.split(/(\*\*\*.+?\*\*\*|\*\*_.+?_\*\*)/g);
   return parts.map((part, i) => {
@@ -121,11 +141,23 @@ function renderDescriptionLine(
     const segmentKey = `${lineKey}-${i}`;
     return match ? (
       <em key={segmentKey} className="font-semibold italic">
-        {linkifySpellNames(match[1], matcher, onSelectSpell, segmentKey)}
+        {linkifySpellAndDice(
+          match[1],
+          matcher,
+          onSelectSpell,
+          onRollDice,
+          segmentKey,
+        )}
       </em>
     ) : (
       <span key={segmentKey}>
-        {linkifySpellNames(part, matcher, onSelectSpell, segmentKey)}
+        {linkifySpellAndDice(
+          part,
+          matcher,
+          onSelectSpell,
+          onRollDice,
+          segmentKey,
+        )}
       </span>
     );
   });
@@ -183,9 +215,13 @@ export function ItemDetailsDialog({
   onToggleItemInList,
   onToggleSpellInList,
   onCreateList,
+  onRollDice,
+  onToast,
 }: ItemDetailsDialogProps) {
   const remote = useRemoteDescription(item);
   const spellMatcher = useSpellMatcher(spells);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedMarkdown, setCopiedMarkdown] = useState(false);
 
   const description =
     remote.status === "loaded" ? remote.desc : item?.description ?? [];
@@ -199,6 +235,38 @@ export function ItemDetailsDialog({
           ? `${API_ATTRIBUTION} unavailable — showing summary`
           : null;
 
+  const handleCopyLink = async () => {
+    if (!item) return;
+    const url = new URL(window.location.origin + window.location.pathname);
+    url.searchParams.set("tab", "items");
+    const slug = item.slug || item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    url.searchParams.set("item", slug);
+    const ok = await copyToClipboard(url.toString());
+    if (ok) {
+      setCopiedLink(true);
+      onToast?.(`Link to "${item.name}" copied!`);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
+  const handleCopyMarkdown = async () => {
+    if (!item) return;
+    const url = new URL(window.location.origin + window.location.pathname);
+    url.searchParams.set("tab", "items");
+    const slug = item.slug || item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    url.searchParams.set("item", slug);
+    const md = generateSingleItemMarkdown(item, url.toString());
+    const ok = await copyToClipboard(md);
+    if (ok) {
+      setCopiedMarkdown(true);
+      onToast?.(`Discord markdown for "${item.name}" copied!`);
+      setTimeout(() => setCopiedMarkdown(false), 2000);
+    }
+  };
+
+  const requiresAttunement = item ? itemRequiresAttunement(item) : false;
+  const attunementText = item ? itemAttunementDetail(item) : null;
+
   return (
     <Dialog open={item != null} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
@@ -208,6 +276,34 @@ export function ItemDetailsDialog({
               <div className="flex items-start justify-between gap-4 pr-8">
                 <DialogTitle className="text-xl">{item.name}</DialogTitle>
                 <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    title="Copy direct link to this item"
+                    aria-label="Copy item link"
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    {copiedLink ? (
+                      <Check className="size-4 text-green-500" />
+                    ) : (
+                      <Share2 className="size-4" />
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyMarkdown}
+                    title="Copy Discord markdown for this item"
+                    aria-label="Copy item markdown"
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    {copiedMarkdown ? (
+                      <Check className="size-4 text-green-500" />
+                    ) : (
+                      <Copy className="size-4" />
+                    )}
+                  </button>
+
                   {lists && isItemInList && onToggleItemInList && onCreateList && (
                     <AddToListMenu
                       itemId={item.id}
@@ -246,6 +342,11 @@ export function ItemDetailsDialog({
                 {item.tags.map((tag) => (
                   <Tag key={tag} tag={tag} />
                 ))}
+                {requiresAttunement && (
+                  <span className="inline-flex items-center rounded-md border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-800 dark:border-purple-800 dark:bg-purple-950/60 dark:text-purple-300">
+                    {attunementText || "Requires Attunement"}
+                  </span>
+                )}
               </div>
 
               {sourceLabel && (
@@ -268,7 +369,13 @@ export function ItemDetailsDialog({
               >
                 {description.map((desc, i) => (
                   <p key={i}>
-                    {renderDescriptionLine(desc, `desc-${i}`, spellMatcher, onSelectSpell)}
+                    {renderDescriptionLine(
+                      desc,
+                      `desc-${i}`,
+                      spellMatcher,
+                      onSelectSpell,
+                      onRollDice,
+                    )}
                   </p>
                 ))}
               </div>

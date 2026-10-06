@@ -9,7 +9,13 @@ import {
 import { Check, Scroll } from "lucide-react";
 import { highestPrice, Item, items, lowestPrice } from "./data/items";
 import { activeFilterCount, FilterState, filterItems } from "./lib/filters";
-import { useCatalogUrlState, removeSharedParamsFromUrl } from "./lib/urlState";
+import {
+  useCatalogUrlState,
+  removeSharedParamsFromUrl,
+  decodeDeepLinkedItem,
+  decodeDeepLinkedSpell,
+  setDeepLinkedParam,
+} from "./lib/urlState";
 import {
   SharedListData,
   copyToClipboard,
@@ -17,15 +23,20 @@ import {
   generateShareUrl,
   parseSharedListFromUrl,
   useCustomLists,
+  calculateListGoldTotal,
+  calculateListAttunementCount,
 } from "./lib/customLists";
 import { Header } from "./components/Header";
 import FilterSidebar from "./components/FilterSidebar";
 import ItemList from "./components/ItemList";
+import { ItemTableView } from "./components/ItemTableView";
 import { ResultsHeader } from "./components/ResultsHeader";
 import { EmptyState } from "./components/EmptyState";
 import { ItemDetailsDialog } from "./components/ItemDetailsDialog";
 import { SharedListBanner } from "./components/SharedListBanner";
 import { ListManagerDialog } from "./components/ListManagerDialog";
+import { ActiveFilterChips } from "./components/ActiveFilterChips";
+import type { DiceRollResult } from "./lib/diceRoller";
 
 import { Spell, spells } from "./data/spells";
 import {
@@ -35,6 +46,7 @@ import {
 } from "./lib/spellFilters";
 import SpellFilterSidebar from "./components/SpellFilterSidebar";
 import SpellList from "./components/SpellList";
+import { SpellTableView } from "./components/SpellTableView";
 import { SpellResultsHeader } from "./components/SpellResultsHeader";
 import { SpellDetailsDialog } from "./components/SpellDetailsDialog";
 
@@ -52,6 +64,7 @@ const defaultFilterState: FilterState = {
   maxPrice: highestPrice,
   favoritesOnly: false,
   sort: "price-asc",
+  attunement: "all",
 };
 
 const defaultSpellFilterState: SpellFilterState = {
@@ -59,6 +72,7 @@ const defaultSpellFilterState: SpellFilterState = {
   levels: [],
   schools: [],
   classes: [],
+  castingTimes: [],
   ritualOnly: false,
   concentrationOnly: false,
   favoritesOnly: false,
@@ -96,7 +110,10 @@ function App() {
     toggleSpellInList,
     isItemInList,
     isSpellInList,
+    setItemQuantity,
     importSharedList,
+    exportBackupLists,
+    importBackupLists,
   } = useCustomLists();
 
   // Fast item and spell lookups
@@ -137,8 +154,120 @@ function App() {
     return activeSpellIds;
   }, [isViewingShared, sharedList, activeSpellIds]);
 
+  // View mode (grid vs table) with local persistence
+  const [viewMode, setViewMode] = useState<"grid" | "table">(() => {
+    if (typeof window === "undefined") return "grid";
+    const stored = localStorage.getItem("dnd-view-mode");
+    return stored === "table" ? "table" : "grid";
+  });
+
+  const handleViewModeChange = useCallback((mode: "grid" | "table") => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem("dnd-view-mode", mode);
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
+
+  // Deep linking item/spell lookup helpers
+  const findItemByParam = useCallback(
+    (val: string): Item | null => {
+      const norm = val.trim().toLowerCase();
+      const byId = Number(norm);
+      if (!Number.isNaN(byId) && itemsMap.has(byId)) return itemsMap.get(byId) ?? null;
+      return (
+        items.find(
+          (i) =>
+            (i.slug && i.slug.toLowerCase() === norm) ||
+            i.name.toLowerCase() === norm ||
+            i.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") === norm,
+        ) ?? null
+      );
+    },
+    [itemsMap],
+  );
+
+  const findSpellByParam = useCallback(
+    (val: string): Spell | null => {
+      const norm = val.trim().toLowerCase();
+      const byId = Number(norm);
+      if (!Number.isNaN(byId) && spellsMap.has(byId)) return spellsMap.get(byId) ?? null;
+      return (
+        spells.find(
+          (s) =>
+            (s.index && s.index.toLowerCase() === norm) ||
+            s.name.toLowerCase() === norm ||
+            s.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") === norm,
+        ) ?? null
+      );
+    },
+    [spellsMap],
+  );
+
+  const handleSelectItem = useCallback((item: Item | null) => {
+    setSelectedItem(item);
+    setDeepLinkedParam(
+      "item",
+      item
+        ? item.slug || item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+        : null,
+    );
+  }, []);
+
+  const handleSelectSpell = useCallback((spell: Spell | null) => {
+    setSelectedSpell(spell);
+    setDeepLinkedParam(
+      "spell",
+      spell
+        ? spell.index || spell.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")
+        : null,
+    );
+  }, []);
+
+  // Deep linking initial load
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const search = window.location.search;
+    const linkedItemName = decodeDeepLinkedItem(search);
+    const linkedSpellName = decodeDeepLinkedSpell(search);
+
+    if (linkedItemName) {
+      const item = findItemByParam(linkedItemName);
+      if (item) {
+        setSelectedItem(item);
+        setActiveTab("items");
+      }
+    } else if (linkedSpellName) {
+      const spell = findSpellByParam(linkedSpellName);
+      if (spell) {
+        setSelectedSpell(spell);
+        setActiveTab("spells");
+      }
+    }
+  }, [findItemByParam, findSpellByParam, setActiveTab]);
+
+  // Dice roll toast handler
+  const handleRollDice = useCallback(
+    (roll: DiceRollResult) => {
+      showToast(`🎲 ${roll.expression}: ${roll.breakdown}`);
+    },
+    [showToast],
+  );
+
+  // Active list metrics (gold total & attunement budget)
+  const activeListGoldTotal = useMemo(() => {
+    const listToCalc = isViewingShared && sharedList ? sharedList : activeList;
+    return calculateListGoldTotal(listToCalc, itemsMap);
+  }, [isViewingShared, sharedList, activeList, itemsMap]);
+
+  const activeListAttunementCount = useMemo(() => {
+    const listToCalc = isViewingShared && sharedList ? sharedList : activeList;
+    return calculateListAttunementCount(listToCalc, itemsMap);
+  }, [isViewingShared, sharedList, activeList, itemsMap]);
 
   useEffect(() => {
     document.title =
@@ -150,7 +279,25 @@ function App() {
   const handleSelectSpellFromItem = useCallback((spell: Spell) => {
     setSelectedItem(null);
     setSelectedSpell(spell);
+    setDeepLinkedParam(
+      "spell",
+      spell.index || spell.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+    );
   }, []);
+
+  const handleTabChange = useCallback(
+    (tab: CatalogTab) => {
+      setActiveTab(tab);
+      if (tab === "items") {
+        setSelectedSpell(null);
+        setDeepLinkedParam("spell", null);
+      } else {
+        setSelectedItem(null);
+        setDeepLinkedParam("item", null);
+      }
+    },
+    [setActiveTab],
+  );
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -231,6 +378,7 @@ function App() {
       sharedList.name,
       sharedList.itemIds,
       sharedList.spellIds,
+      sharedList.quantities,
     );
     setIsSavedShared(true);
     setSharedListDismissed(true);
@@ -322,6 +470,7 @@ function App() {
         deferredState.search,
         deferredState.rarities.join(","),
         deferredState.categories.join(","),
+        deferredState.attunement,
         deferredState.minPrice,
         deferredState.maxPrice,
         deferredState.favoritesOnly,
@@ -338,6 +487,7 @@ function App() {
         deferredSpellState.levels.join(","),
         deferredSpellState.schools.join(","),
         deferredSpellState.classes.join(","),
+        deferredSpellState.castingTimes.join(","),
         deferredSpellState.ritualOnly,
         deferredSpellState.concentrationOnly,
         deferredSpellState.favoritesOnly,
@@ -367,7 +517,7 @@ function App() {
         onOpenMobileFilters={() => setMobileFiltersOpen(true)}
         activeFilterCount={filterCount}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         rightSlot={
           <button
             type="button"
@@ -416,6 +566,7 @@ function App() {
           {isViewingShared && sharedList && (
             <SharedListBanner
               sharedList={sharedList}
+              itemsMap={itemsMap}
               onSaveToLists={handleSaveSharedList}
               onDismiss={handleDismissShared}
               onCopyShareLink={handleCopySharedLink}
@@ -446,13 +597,33 @@ function App() {
                 onSelectActiveList={setActiveListId}
                 onOpenListManager={() => setListManagerOpen(true)}
                 onShareActiveList={handleShareActiveList}
+                viewMode={viewMode}
+                onViewModeChange={handleViewModeChange}
+                totalGold={
+                  isViewingShared || state.favoritesOnly
+                    ? activeListGoldTotal
+                    : undefined
+                }
+                attunementCount={
+                  isViewingShared || state.favoritesOnly
+                    ? activeListAttunementCount
+                    : undefined
+                }
+              />
+
+              <ActiveFilterChips
+                tab="items"
+                itemState={state}
+                onItemChange={updateState}
+                defaultPriceRange={[lowestPrice, highestPrice]}
+                onClearAll={handleClearFilters}
               />
 
               {filteredItems.length === 0 ? (
                 <div className="min-h-[50vh]">
-                  <EmptyState onClearFilters={handleClearFilters} />
+                  <EmptyState onClearFilters={handleClearFilters} tab="items" />
                 </div>
-              ) : (
+              ) : viewMode === "grid" ? (
                 <ItemList
                   items={filteredItems}
                   isFavorite={
@@ -460,7 +631,19 @@ function App() {
                       ? (id: number) => effectiveItemFavorites.has(id)
                       : isItemInActiveList
                   }
-                  onSelect={setSelectedItem}
+                  onSelect={handleSelectItem}
+                  onToggleFavorite={toggleItemInActiveList}
+                  resetKey={resetKey}
+                />
+              ) : (
+                <ItemTableView
+                  items={filteredItems}
+                  isFavorite={
+                    isViewingShared
+                      ? (id: number) => effectiveItemFavorites.has(id)
+                      : isItemInActiveList
+                  }
+                  onSelect={handleSelectItem}
                   onToggleFavorite={toggleItemInActiveList}
                   resetKey={resetKey}
                 />
@@ -488,13 +671,22 @@ function App() {
                 onSelectActiveList={setActiveListId}
                 onOpenListManager={() => setListManagerOpen(true)}
                 onShareActiveList={handleShareActiveList}
+                viewMode={viewMode}
+                onViewModeChange={handleViewModeChange}
+              />
+
+              <ActiveFilterChips
+                tab="spells"
+                spellState={spellState}
+                onSpellChange={updateSpellState}
+                onClearAll={handleClearFilters}
               />
 
               {filteredSpells.length === 0 ? (
                 <div className="min-h-[50vh]">
-                  <EmptyState onClearFilters={handleClearFilters} />
+                  <EmptyState onClearFilters={handleClearFilters} tab="spells" />
                 </div>
-              ) : (
+              ) : viewMode === "grid" ? (
                 <SpellList
                   spells={filteredSpells}
                   isFavorite={
@@ -502,7 +694,19 @@ function App() {
                       ? (id: number) => effectiveSpellFavorites.has(id)
                       : isSpellInActiveList
                   }
-                  onSelect={setSelectedSpell}
+                  onSelect={handleSelectSpell}
+                  onToggleFavorite={toggleSpellInActiveList}
+                  resetKey={spellResetKey}
+                />
+              ) : (
+                <SpellTableView
+                  spells={filteredSpells}
+                  isFavorite={
+                    isViewingShared
+                      ? (id: number) => effectiveSpellFavorites.has(id)
+                      : isSpellInActiveList
+                  }
+                  onSelect={handleSelectSpell}
                   onToggleFavorite={toggleSpellInActiveList}
                   resetKey={spellResetKey}
                 />
@@ -515,7 +719,7 @@ function App() {
       {/* Item Details Dialog with List management */}
       <ItemDetailsDialog
         item={selectedItem}
-        onOpenChange={(open) => !open && setSelectedItem(null)}
+        onOpenChange={(open) => !open && handleSelectItem(null)}
         isFavorite={
           selectedItem
             ? isViewingShared
@@ -534,12 +738,14 @@ function App() {
         onToggleItemInList={toggleItemInList}
         onToggleSpellInList={toggleSpellInList}
         onCreateList={createList}
+        onRollDice={handleRollDice}
+        onToast={showToast}
       />
 
       {/* Spell Details Dialog with List management */}
       <SpellDetailsDialog
         spell={selectedSpell}
-        onOpenChange={(open) => !open && setSelectedSpell(null)}
+        onOpenChange={(open) => !open && handleSelectSpell(null)}
         isFavorite={
           selectedSpell
             ? isViewingShared
@@ -556,6 +762,8 @@ function App() {
         onToggleItemInList={toggleItemInList}
         onToggleSpellInList={toggleSpellInList}
         onCreateList={createList}
+        onRollDice={handleRollDice}
+        onToast={showToast}
       />
 
       {/* Full List Management Dialog */}
@@ -571,6 +779,9 @@ function App() {
         itemsMap={itemsMap}
         spellsMap={spellsMap}
         activeTab={activeTab}
+        onSetItemQuantity={setItemQuantity}
+        onExportBackup={exportBackupLists}
+        onImportBackup={importBackupLists}
       />
 
       {/* Toast Notification */}

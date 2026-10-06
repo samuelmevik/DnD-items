@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Item } from "@/data/items";
 import type { Spell } from "@/data/spells";
+import { itemRequiresAttunement } from "./filters";
 
 export type CustomList = {
   id: string;
   name: string;
   itemIds: number[];
   spellIds: number[];
+  quantities?: Record<number, number>;
   createdAt: number;
   updatedAt: number;
 };
@@ -15,6 +17,7 @@ export type SharedListData = {
   name: string;
   itemIds: number[];
   spellIds: number[];
+  quantities?: Record<number, number>;
 };
 
 const LISTS_STORAGE_KEY = "dnd-items.custom-lists.v1";
@@ -67,6 +70,7 @@ function readListsFromStorage(): CustomList[] {
           spellIds: Array.isArray(item.spellIds)
             ? Array.from(new Set(item.spellIds.filter((n): n is number => typeof n === "number")))
             : [],
+          quantities: item.quantities && typeof item.quantities === "object" ? item.quantities : {},
           createdAt: typeof item.createdAt === "number" ? item.createdAt : Date.now(),
           updatedAt: typeof item.updatedAt === "number" ? item.updatedAt : Date.now(),
         }));
@@ -129,6 +133,7 @@ export function parseSharedListFromUrl(search: string): SharedListData | null {
     params.get("list");
   const itemsRaw = params.get("items") || params.get("itemIds");
   const spellsRaw = params.get("spells") || params.get("spellIds");
+  const quantitiesRaw = params.get("qty") || params.get("quantities");
 
   if (!name && !itemsRaw && !spellsRaw) return null;
 
@@ -150,15 +155,33 @@ export function parseSharedListFromUrl(search: string): SharedListData | null {
     return null;
   }
 
+  const quantities: Record<number, number> = {};
+  if (quantitiesRaw) {
+    for (const pair of quantitiesRaw.split(",")) {
+      const [idStr, qStr] = pair.split(":");
+      const id = Number(idStr?.trim());
+      const q = Number(qStr?.trim());
+      if (Number.isInteger(id) && id > 0 && Number.isInteger(q) && q > 0) {
+        quantities[id] = q;
+      }
+    }
+  }
+
   return {
     name: name ? name.trim() : "Shared Gear Set",
     itemIds: Array.from(new Set(itemIds)),
     spellIds: Array.from(new Set(spellIds)),
+    quantities: Object.keys(quantities).length > 0 ? quantities : undefined,
   };
 }
 
 export function generateShareUrl(
-  list: { name: string; itemIds: number[]; spellIds: number[] },
+  list: {
+    name: string;
+    itemIds: number[];
+    spellIds: number[];
+    quantities?: Record<number, number>;
+  },
   tab: "items" | "spells" = "items",
 ): string {
   if (typeof window === "undefined") return "";
@@ -170,6 +193,14 @@ export function generateShareUrl(
   }
   if (list.spellIds.length > 0) {
     url.searchParams.set("spells", list.spellIds.join(","));
+  }
+  if (list.quantities && Object.keys(list.quantities).length > 0) {
+    const qtyParts = Object.entries(list.quantities)
+      .filter(([id, q]) => list.itemIds.includes(Number(id)) && q > 1)
+      .map(([id, q]) => `${id}:${q}`);
+    if (qtyParts.length > 0) {
+      url.searchParams.set("qty", qtyParts.join(","));
+    }
   }
   return url.toString();
 }
@@ -202,8 +233,30 @@ export async function copyToClipboard(text: string): Promise<boolean> {
   }
 }
 
+export function calculateListGoldTotal(
+  list: { itemIds: number[]; quantities?: Record<number, number> },
+  itemsMap: Map<number, Item>,
+): number {
+  return list.itemIds.reduce((sum, id) => {
+    const item = itemsMap.get(id);
+    const qty = Math.max(1, list.quantities?.[id] ?? 1);
+    return sum + (item ? item.price * qty : 0);
+  }, 0);
+}
+
+export function calculateListAttunementCount(
+  list: { itemIds: number[] },
+  itemsMap: Map<number, Item>,
+): number {
+  return list.itemIds.reduce((sum, id) => {
+    const item = itemsMap.get(id);
+    if (!item) return sum;
+    return sum + (itemRequiresAttunement(item) ? 1 : 0);
+  }, 0);
+}
+
 export function generateMarkdownSummary(
-  list: { name: string; itemIds: number[]; spellIds: number[] },
+  list: { name: string; itemIds: number[]; spellIds: number[]; quantities?: Record<number, number> },
   itemsMap: Map<number, Item>,
   spellsMap: Map<number, Spell>,
   shareUrl?: string,
@@ -211,6 +264,20 @@ export function generateMarkdownSummary(
   const lines: string[] = [];
   lines.push(`⚔️ **${list.name}**`);
   lines.push(`*D&D 5e Custom Gear & Spell Collection*`);
+
+  const totalGold = calculateListGoldTotal(list, itemsMap);
+  const attuneCount = calculateListAttunementCount(list, itemsMap);
+
+  const summaryParts: string[] = [];
+  if (list.itemIds.length > 0) {
+    summaryParts.push(`💰 Total Value: ${totalGold.toLocaleString()} gp`);
+    summaryParts.push(
+      `🔮 Attunement: ${attuneCount} / 3 slots${attuneCount > 3 ? " (⚠️ exceeds limit)" : ""}`,
+    );
+  }
+  if (summaryParts.length > 0) {
+    lines.push(`_${summaryParts.join(" · ")}_`);
+  }
   lines.push("");
 
   if (list.itemIds.length > 0) {
@@ -229,12 +296,15 @@ export function generateMarkdownSummary(
               "Artifact",
             ].includes(t),
           ) || "";
-        const priceStr = `${item.price.toLocaleString()} gp`;
-        const attunementStr = item.description[0]?.toLowerCase().includes("attunement")
+        const qty = list.quantities?.[id] ?? 1;
+        const qtyStr = qty > 1 ? ` (×${qty})` : "";
+        const itemTotal = item.price * qty;
+        const priceStr = `${itemTotal.toLocaleString()} gp${qty > 1 ? ` (${item.price.toLocaleString()} gp ea)` : ""}`;
+        const attunementStr = itemRequiresAttunement(item)
           ? " · Requires Attunement"
           : "";
         lines.push(
-          `• **${item.name}** (${rarity}${attunementStr}) — ${priceStr}${
+          `• **${item.name}**${qtyStr} (${rarity}${attunementStr}) — ${priceStr}${
             item.synopsis ? `\n  _${item.synopsis}_` : ""
           }`,
         );
@@ -269,6 +339,73 @@ export function generateMarkdownSummary(
     lines.push(shareUrl);
   }
 
+  return lines.join("\n");
+}
+
+export function generateSingleItemMarkdown(
+  item: Item,
+  shareUrl?: string,
+): string {
+  const lines: string[] = [];
+  const rarity =
+    item.tags.find((t) =>
+      [
+        "Common",
+        "Uncommon",
+        "Rare",
+        "Very Rare",
+        "Legendary",
+        "Artifact",
+      ].includes(t),
+    ) || "";
+  const attune = itemRequiresAttunement(item) ? " · Requires Attunement" : "";
+  lines.push(
+    `⚔️ **${item.name}** (${rarity}${attune}) — ${item.price.toLocaleString()} gp`,
+  );
+  if (item.synopsis) {
+    lines.push(`_${item.synopsis}_`);
+  }
+  lines.push("");
+  for (const p of item.description) {
+    lines.push(p);
+  }
+  if (shareUrl) {
+    lines.push("");
+    lines.push(`🔗 *View in Catalog:* ${shareUrl}`);
+  }
+  return lines.join("\n");
+}
+
+export function generateSingleSpellMarkdown(
+  spell: Spell,
+  shareUrl?: string,
+): string {
+  const lines: string[] = [];
+  const levelStr = spell.level === 0 ? "Cantrip" : `Level ${spell.level}`;
+  lines.push(`✨ **${spell.name}**`);
+  lines.push(`*${levelStr} · ${spell.school}*`);
+  lines.push(`• **Casting Time:** ${spell.castingTime}`);
+  lines.push(`• **Range:** ${spell.range}`);
+  lines.push(`• **Duration:** ${spell.duration}`);
+  lines.push(`• **Components:** ${spell.components.join(", ")}`);
+  lines.push(`• **Classes:** ${spell.classes.join(", ")}`);
+  if (spell.ritual) lines.push(`• **Ritual:** Yes`);
+  if (spell.concentration) lines.push(`• **Concentration:** Yes`);
+  lines.push("");
+  for (const p of spell.description) {
+    lines.push(p);
+  }
+  if (spell.higherLevel && spell.higherLevel.length > 0) {
+    lines.push("");
+    lines.push(`**At Higher Levels:**`);
+    for (const h of spell.higherLevel) {
+      lines.push(h);
+    }
+  }
+  if (shareUrl) {
+    lines.push("");
+    lines.push(`🔗 *View in Catalog:* ${shareUrl}`);
+  }
   return lines.join("\n");
 }
 
@@ -385,9 +522,14 @@ export function useCustomLists() {
         const nextItemIds = exists
           ? l.itemIds.filter((id) => id !== itemId)
           : [...l.itemIds, itemId];
+        const nextQuantities = { ...(l.quantities || {}) };
+        if (exists) {
+          delete nextQuantities[itemId];
+        }
         return {
           ...l,
           itemIds: nextItemIds,
+          quantities: nextQuantities,
           updatedAt: Date.now(),
         };
       }),
@@ -452,19 +594,121 @@ export function useCustomLists() {
   );
 
   const importSharedList = useCallback(
-    (name: string, itemIds: number[], spellIds: number[]): CustomList => {
+    (
+      name: string,
+      itemIds: number[],
+      spellIds: number[],
+      quantities?: Record<number, number>,
+    ): CustomList => {
       const id = `list_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       const imported: CustomList = {
         id,
         name: name.trim() || "Imported List",
         itemIds: Array.from(new Set(itemIds)),
         spellIds: Array.from(new Set(spellIds)),
+        quantities: quantities ? { ...quantities } : {},
         createdAt: Date.now(),
         updatedAt: Date.now(),
       };
       setLists((prev) => [...prev, imported]);
       setActiveListIdRaw(id);
       return imported;
+    },
+    [],
+  );
+
+  const setItemQuantity = useCallback(
+    (listId: string, itemId: number, qty: number) => {
+      setLists((prev) =>
+        prev.map((l) => {
+          if (l.id !== listId) return l;
+          const nextQuantities = { ...(l.quantities || {}) };
+          if (qty <= 1) {
+            delete nextQuantities[itemId];
+          } else {
+            nextQuantities[itemId] = Math.min(999, Math.max(1, qty));
+          }
+          return {
+            ...l,
+            quantities: nextQuantities,
+            updatedAt: Date.now(),
+          };
+        }),
+      );
+    },
+    [],
+  );
+
+  const exportBackupLists = useCallback((): string => {
+    return JSON.stringify(
+      {
+        version: 1,
+        exportedAt: Date.now(),
+        lists,
+      },
+      null,
+      2,
+    );
+  }, [lists]);
+
+  const importBackupLists = useCallback(
+    (parsedJson: unknown): { success: boolean; count: number; error?: string } => {
+      try {
+        let importedLists: CustomList[] = [];
+        if (Array.isArray(parsedJson)) {
+          importedLists = parsedJson as CustomList[];
+        } else if (
+          parsedJson &&
+          typeof parsedJson === "object" &&
+          Array.isArray((parsedJson as { lists?: unknown }).lists)
+        ) {
+          importedLists = (parsedJson as { lists: CustomList[] }).lists;
+        } else {
+          return { success: false, count: 0, error: "Invalid backup format." };
+        }
+
+        const valid = importedLists
+          .filter((l) => l && typeof l === "object" && typeof l.name === "string")
+          .map((l, i) => ({
+            id: l.id || `imported_${Date.now()}_${i}`,
+            name: l.name.trim() || "Imported List",
+            itemIds: Array.isArray(l.itemIds)
+              ? Array.from(new Set(l.itemIds.filter((n): n is number => typeof n === "number")))
+              : [],
+            spellIds: Array.isArray(l.spellIds)
+              ? Array.from(new Set(l.spellIds.filter((n): n is number => typeof n === "number")))
+              : [],
+            quantities: l.quantities && typeof l.quantities === "object" ? l.quantities : {},
+            createdAt: typeof l.createdAt === "number" ? l.createdAt : Date.now(),
+            updatedAt: typeof l.updatedAt === "number" ? l.updatedAt : Date.now(),
+          }));
+
+        if (valid.length === 0) {
+          return { success: false, count: 0, error: "No valid lists found in backup." };
+        }
+
+        setLists((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const toAdd: CustomList[] = [];
+          for (const list of valid) {
+            let finalId = list.id;
+            if (existingIds.has(finalId)) {
+              finalId = `list_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+            }
+            existingIds.add(finalId);
+            toAdd.push({ ...list, id: finalId });
+          }
+          return [...prev, ...toAdd];
+        });
+
+        return { success: true, count: valid.length };
+      } catch (e: unknown) {
+        return {
+          success: false,
+          count: 0,
+          error: e instanceof Error ? e.message : "Failed to parse backup.",
+        };
+      }
     },
     [],
   );
@@ -483,10 +727,13 @@ export function useCustomLists() {
     toggleSpellInList,
     toggleItemInActiveList,
     toggleSpellInActiveList,
+    setItemQuantity,
     isItemInList,
     isSpellInList,
     isItemInActiveList,
     isSpellInActiveList,
     importSharedList,
+    exportBackupLists,
+    importBackupLists,
   };
 }

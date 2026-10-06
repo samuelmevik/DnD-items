@@ -36,11 +36,37 @@ export const SPELL_SORT_LABELS: Record<SpellSortKey, string> = {
   "name-desc": "Name: Z → A",
 };
 
+export const CASTING_TIMES = [
+  "Action",
+  "Bonus Action",
+  "Reaction",
+  "1 Minute+",
+] as const;
+
+export type CastingTimeCategory = (typeof CASTING_TIMES)[number];
+
+export const getCastingTimeCategory = (
+  castingTime: string,
+): CastingTimeCategory => {
+  const lower = (castingTime || "").toLowerCase().trim();
+  if (lower.startsWith("1 bonus action") || lower === "bonus action") {
+    return "Bonus Action";
+  }
+  if (lower.startsWith("1 reaction") || lower === "reaction") {
+    return "Reaction";
+  }
+  if (lower.startsWith("1 action") || lower === "action") {
+    return "Action";
+  }
+  return "1 Minute+";
+};
+
 export type SpellFilterState = {
   search: string;
   levels: number[];
   schools: string[];
   classes: string[];
+  castingTimes: CastingTimeCategory[];
   ritualOnly: boolean;
   concentrationOnly: boolean;
   favoritesOnly: boolean;
@@ -59,6 +85,7 @@ export type SpellFilterPredicate = {
   levels?: boolean;
   schools?: boolean;
   classes?: boolean;
+  castingTimes?: boolean;
   ritual?: boolean;
   concentration?: boolean;
   favorites?: boolean;
@@ -84,6 +111,15 @@ const passes = (
     !skip.classes &&
     state.classes.length > 0 &&
     !spell.classes.some((c) => state.classes.includes(c))
+  ) {
+    return false;
+  }
+
+  if (
+    !skip.castingTimes &&
+    state.castingTimes &&
+    state.castingTimes.length > 0 &&
+    !state.castingTimes.includes(getCastingTimeCategory(spell.castingTime))
   ) {
     return false;
   }
@@ -160,12 +196,32 @@ export const classCount = (
   return count;
 };
 
+export const castingTimeCount = (
+  spells: Spell[],
+  state: SpellFilterState,
+  favorites: Set<number>,
+  category: CastingTimeCategory,
+): number => {
+  const skip: SpellFilterPredicate = { castingTimes: true };
+  let count = 0;
+  for (const s of spells) {
+    if (
+      passes(s, state, favorites, skip) &&
+      getCastingTimeCategory(s.castingTime) === category
+    ) {
+      count++;
+    }
+  }
+  return count;
+};
+
 export const activeSpellFilterCount = (state: SpellFilterState): number => {
   let n = 0;
   if (state.search) n++;
   n += state.levels.length;
   n += state.schools.length;
   n += state.classes.length;
+  n += state.castingTimes.length;
   if (state.ritualOnly) n++;
   if (state.concentrationOnly) n++;
   if (state.favoritesOnly) n++;

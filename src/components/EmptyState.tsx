@@ -1,6 +1,13 @@
 import { SearchX } from "lucide-react";
 
-export function EmptyState({ onClearFilters }: { onClearFilters: () => void }) {
+export function EmptyState({
+  onClearFilters,
+  tab = "items",
+}: {
+  onClearFilters: () => void;
+  tab?: "items" | "spells";
+}) {
+  const noun = tab === "spells" ? "spells" : "items";
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border bg-card/40 p-10 text-center">
       <SearchX
@@ -8,9 +15,9 @@ export function EmptyState({ onClearFilters }: { onClearFilters: () => void }) {
         aria-hidden
       />
       <div className="space-y-1">
-        <h3 className="text-lg font-semibold">No items match your filters</h3>
+        <h3 className="text-lg font-semibold">No {noun} match your filters</h3>
         <p className="text-sm text-muted-foreground">
-          Try removing a filter or clearing all to see more results.
+          Try removing a filter or clearing your search to see more {noun}.
         </p>
       </div>
       <button

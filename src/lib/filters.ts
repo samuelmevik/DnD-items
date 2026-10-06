@@ -40,6 +40,8 @@ export const SORT_LABELS: Record<SortKey, string> = {
   "rarity-desc": "Rarity: rare first",
 };
 
+export type AttunementFilter = "all" | "requires" | "none";
+
 export type FilterState = {
   search: string;
   rarities: string[];
@@ -48,6 +50,21 @@ export type FilterState = {
   maxPrice: number;
   favoritesOnly: boolean;
   sort: SortKey;
+  attunement: AttunementFilter;
+};
+
+export const itemRequiresAttunement = (item: Item): boolean => {
+  if (item.tags.some((t) => t.toLowerCase().includes("attunement"))) return true;
+  if (!item.description || item.description.length === 0) return false;
+  return /requires attunement/i.test(item.description[0]);
+};
+
+export const itemAttunementDetail = (item: Item): string | null => {
+  if (!item.description || item.description.length === 0) return null;
+  const match = item.description[0].match(/requires attunement([^)]*)/i);
+  if (!match) return null;
+  const detail = match[1].trim();
+  return detail.length > 0 ? `Requires attunement ${detail}` : "Requires Attunement";
 };
 
 const itemRarity = (item: Item): string | undefined =>
@@ -69,6 +86,7 @@ export type FilterPredicate = {
   categories?: boolean;
   price?: boolean;
   favorites?: boolean;
+  attunement?: boolean;
 };
 
 const passes = (
@@ -87,6 +105,12 @@ const passes = (
   if (!skip.categories && state.categories.length > 0) {
     const cats = itemCategories(item);
     if (!cats.some((c) => state.categories.includes(c))) return false;
+  }
+
+  if (!skip.attunement && state.attunement && state.attunement !== "all") {
+    const req = itemRequiresAttunement(item);
+    if (state.attunement === "requires" && !req) return false;
+    if (state.attunement === "none" && req) return false;
   }
 
   if (!skip.price) {
@@ -153,11 +177,29 @@ export const tagCount = (
   return count;
 };
 
+export const attunementCount = (
+  items: Item[],
+  state: FilterState,
+  favorites: Set<number>,
+  type: "requires" | "none",
+): number => {
+  const skip: FilterPredicate = { attunement: true };
+  let count = 0;
+  for (const item of items) {
+    if (!passes(item, state, favorites, skip)) continue;
+    const req = itemRequiresAttunement(item);
+    if (type === "requires" && req) count++;
+    if (type === "none" && !req) count++;
+  }
+  return count;
+};
+
 export const activeFilterCount = (state: FilterState): number => {
   let n = 0;
   if (state.search) n++;
   n += state.rarities.length;
   n += state.categories.length;
+  if (state.attunement && state.attunement !== "all") n++;
   if (state.favoritesOnly) n++;
   return n;
 };

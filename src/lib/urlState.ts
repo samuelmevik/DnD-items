@@ -5,11 +5,14 @@ import {
   RARITIES,
   SortKey,
   SORT_LABELS,
+  AttunementFilter,
 } from "./filters";
 import {
   CLASSES,
   LEVELS,
   SCHOOLS,
+  CASTING_TIMES,
+  CastingTimeCategory,
   SPELL_SORT_LABELS,
   SpellFilterState,
   SpellSortKey,
@@ -31,6 +34,9 @@ const SCHOOL_LOOKUP = new Map<string, string>(
 );
 const CLASS_LOOKUP = new Map<string, string>(
   CLASSES.map((c) => [c.toLowerCase(), c]),
+);
+const CASTING_TIME_LOOKUP = new Map<string, string>(
+  CASTING_TIMES.map((ct) => [ct.toLowerCase(), ct]),
 );
 const LEVEL_LOOKUP = new Set<number>(LEVELS);
 
@@ -72,18 +78,50 @@ export const decodeTab = (search: string): CatalogTab => {
   return params.get("tab") === "spells" ? "spells" : "items";
 };
 
+export const decodeDeepLinkedItem = (search: string): string | null => {
+  const params = new URLSearchParams(search);
+  return params.get("item");
+};
+
+export const decodeDeepLinkedSpell = (search: string): string | null => {
+  const params = new URLSearchParams(search);
+  return params.get("spell");
+};
+
+export const setDeepLinkedParam = (
+  key: "item" | "spell",
+  value: string | null,
+) => {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  if (value) {
+    url.searchParams.set(key, value);
+    url.searchParams.delete(key === "item" ? "spell" : "item");
+  } else {
+    url.searchParams.delete(key);
+  }
+  const cleanSearch = url.searchParams.toString();
+  const next = `${url.pathname}${cleanSearch ? "?" + cleanSearch : ""}`;
+  window.history.replaceState(null, "", next);
+};
+
 export const decodeFilters = (
   search: string,
   defaults: FilterState,
 ): FilterState => {
   const params = new URLSearchParams(search);
   const sort = params.get("sort") as SortKey | null;
+  const att = params.get("att") as AttunementFilter | null;
   return {
     search: params.get("q") ?? defaults.search,
     rarities: decodeList(params.get("r"), RARITY_LOOKUP),
     categories: decodeList(params.get("c"), CATEGORY_LOOKUP),
     minPrice: decodeInt(params.get("min"), defaults.minPrice),
     maxPrice: decodeInt(params.get("max"), defaults.maxPrice),
+    attunement:
+      att && ["all", "requires", "none"].includes(att)
+        ? att
+        : defaults.attunement,
     favoritesOnly: params.get("fav") === "1",
     sort: sort && SORT_KEYS.includes(sort) ? sort : defaults.sort,
   };
@@ -100,6 +138,9 @@ const preserveSharedParams = (params: URLSearchParams) => {
     "itemIds",
     "spells",
     "spellIds",
+    "qty",
+    "item",
+    "spell",
   ]) {
     const val = currentParams.get(key);
     if (val && !params.has(key)) {
@@ -119,6 +160,7 @@ export const removeSharedParamsFromUrl = () => {
     "itemIds",
     "spells",
     "spellIds",
+    "qty",
   ]) {
     url.searchParams.delete(key);
   }
@@ -135,6 +177,8 @@ export const encodeFilters = (
   if (state.search) params.set("q", state.search);
   if (state.rarities.length) params.set("r", encodeList(state.rarities));
   if (state.categories.length) params.set("c", encodeList(state.categories));
+  if (state.attunement && state.attunement !== defaults.attunement)
+    params.set("att", state.attunement);
   if (state.minPrice !== defaults.minPrice)
     params.set("min", String(state.minPrice));
   if (state.maxPrice !== defaults.maxPrice)
@@ -159,6 +203,10 @@ export const decodeSpellFilters = (
     levels: decodeIntList(params.get("lvl"), LEVEL_LOOKUP),
     schools: decodeList(params.get("school"), SCHOOL_LOOKUP),
     classes: decodeList(params.get("cls"), CLASS_LOOKUP),
+    castingTimes: decodeList(
+      params.get("ct"),
+      CASTING_TIME_LOOKUP,
+    ) as CastingTimeCategory[],
     ritualOnly: params.get("rit") === "1",
     concentrationOnly: params.get("conc") === "1",
     favoritesOnly: params.get("fav") === "1",
@@ -176,6 +224,8 @@ export const encodeSpellFilters = (
   if (state.levels.length) params.set("lvl", encodeIntList(state.levels));
   if (state.schools.length) params.set("school", encodeList(state.schools));
   if (state.classes.length) params.set("cls", encodeList(state.classes));
+  if (state.castingTimes.length)
+    params.set("ct", encodeList(state.castingTimes));
   if (state.ritualOnly) params.set("rit", "1");
   if (state.concentrationOnly) params.set("conc", "1");
   if (state.favoritesOnly) params.set("fav", "1");
