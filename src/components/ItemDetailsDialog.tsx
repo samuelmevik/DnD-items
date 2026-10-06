@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Star, Share2, Copy, Check, Dices, X, Scale } from "lucide-react";
+import { Star, Share2, Copy, Check, Dices, X, Scale, Sparkles } from "lucide-react";
 import { Item } from "@/data/items";
 import { Spell } from "@/data/spells";
 import {
@@ -43,6 +43,7 @@ type ItemDetailsDialogProps = {
   ) => void;
   onRollDice?: (res: DiceRollResult) => void;
   onToast?: (msg: string) => void;
+  onAskAi?: (item: Item) => void;
 };
 
 const formatPrice = (price: number) => `${price.toLocaleString()} gp`;
@@ -221,6 +222,7 @@ export function ItemDetailsDialog({
   onCreateList,
   onRollDice,
   onToast,
+  onAskAi,
 }: ItemDetailsDialogProps) {
   const remote = useRemoteDescription(item);
   const spellMatcher = useSpellMatcher(spells);
@@ -317,6 +319,18 @@ export function ItemDetailsDialog({
                       <Copy className="size-4" />
                     )}
                   </button>
+
+                  {onAskAi && (
+                    <button
+                      type="button"
+                      onClick={() => onAskAi(item)}
+                      title="Ask AI about this item"
+                      aria-label="Ask AI about this item"
+                      className="rounded-md p-1.5 text-amber-500 transition-colors hover:bg-amber-500/10 hover:text-amber-400 active:scale-95"
+                    >
+                      <Sparkles className="size-4" />
+                    </button>
+                  )}
 
                   {lists && isItemInList && onToggleItemInList && onCreateList && (
                     <AddToListMenu
