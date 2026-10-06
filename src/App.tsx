@@ -6,16 +6,27 @@ import {
   useRef,
   useState,
 } from "react";
+import { Check, Scroll } from "lucide-react";
 import { highestPrice, Item, items, lowestPrice } from "./data/items";
 import { activeFilterCount, FilterState, filterItems } from "./lib/filters";
-import { useFavorites } from "./lib/favorites";
-import { useCatalogUrlState } from "./lib/urlState";
+import { useCatalogUrlState, removeSharedParamsFromUrl } from "./lib/urlState";
+import {
+  CustomList,
+  SharedListData,
+  copyToClipboard,
+  generateMarkdownSummary,
+  generateShareUrl,
+  parseSharedListFromUrl,
+  useCustomLists,
+} from "./lib/customLists";
 import { Header } from "./components/Header";
 import FilterSidebar from "./components/FilterSidebar";
 import ItemList from "./components/ItemList";
 import { ResultsHeader } from "./components/ResultsHeader";
 import { EmptyState } from "./components/EmptyState";
 import { ItemDetailsDialog } from "./components/ItemDetailsDialog";
+import { SharedListBanner } from "./components/SharedListBanner";
+import { ListManagerDialog } from "./components/ListManagerDialog";
 
 import { Spell, spells } from "./data/spells";
 import {
@@ -23,7 +34,6 @@ import {
   activeSpellFilterCount,
   filterSpells,
 } from "./lib/spellFilters";
-import { useSpellFavorites } from "./lib/spellFavorites";
 import SpellFilterSidebar from "./components/SpellFilterSidebar";
 import SpellList from "./components/SpellList";
 import { SpellResultsHeader } from "./components/SpellResultsHeader";
@@ -68,14 +78,67 @@ function App() {
     resetSpellState,
   } = useCatalogUrlState(defaultFilterState, defaultSpellFilterState);
 
-  const { favorites, toggle: toggleFavorite, isFavorite } = useFavorites();
-  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-
+  // Custom multiple lists system
   const {
-    favorites: spellFavorites,
-    toggle: toggleSpellFavorite,
-    isFavorite: isSpellFavorite,
-  } = useSpellFavorites();
+    lists,
+    activeList,
+    activeListId,
+    activeItemIds,
+    activeSpellIds,
+    setActiveListId,
+    createList,
+    renameList,
+    deleteList,
+    toggleItemInActiveList,
+    toggleSpellInActiveList,
+    isItemInActiveList,
+    isSpellInActiveList,
+    toggleItemInList,
+    toggleSpellInList,
+    isItemInList,
+    isSpellInList,
+    importSharedList,
+  } = useCustomLists();
+
+  // Fast item and spell lookups
+  const itemsMap = useMemo(() => new Map(items.map((i) => [i.id, i])), []);
+  const spellsMap = useMemo(() => new Map(spells.map((s) => [s.id, s])), []);
+
+  // Shared List via URL link (e.g. DM shared gear set)
+  const [sharedList, setSharedList] = useState<SharedListData | null>(() => {
+    if (typeof window === "undefined") return null;
+    return parseSharedListFromUrl(window.location.search);
+  });
+  const [sharedListDismissed, setSharedListDismissed] = useState(false);
+  const [isSavedShared, setIsSavedShared] = useState(false);
+  const [listManagerOpen, setListManagerOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = useCallback((msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((curr) => (curr === msg ? null : curr));
+    }, 2800);
+  }, []);
+
+  const isViewingShared = Boolean(sharedList && !sharedListDismissed);
+
+  // Effective favorite sets based on whether viewing a shared list or regular active list
+  const effectiveItemFavorites = useMemo(() => {
+    if (isViewingShared && sharedList) {
+      return new Set(sharedList.itemIds);
+    }
+    return activeItemIds;
+  }, [isViewingShared, sharedList, activeItemIds]);
+
+  const effectiveSpellFavorites = useMemo(() => {
+    if (isViewingShared && sharedList) {
+      return new Set(sharedList.spellIds);
+    }
+    return activeSpellIds;
+  }, [isViewingShared, sharedList, activeSpellIds]);
+
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
 
   useEffect(() => {
@@ -93,17 +156,32 @@ function App() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const deferredState = useDeferredValue(state);
-  const deferredSpellState = useDeferredValue(spellState);
+  // If a shared list is active, we constrain items/spells to the shared list by default
+  const effectiveItemState = useMemo(() => {
+    if (isViewingShared && sharedList) {
+      return { ...state, favoritesOnly: true };
+    }
+    return state;
+  }, [isViewingShared, sharedList, state]);
+
+  const effectiveSpellState = useMemo(() => {
+    if (isViewingShared && sharedList) {
+      return { ...spellState, favoritesOnly: true };
+    }
+    return spellState;
+  }, [isViewingShared, sharedList, spellState]);
+
+  const deferredState = useDeferredValue(effectiveItemState);
+  const deferredSpellState = useDeferredValue(effectiveSpellState);
 
   const filteredItems = useMemo(
-    () => filterItems(items, deferredState, favorites),
-    [deferredState, favorites],
+    () => filterItems(items, deferredState, effectiveItemFavorites),
+    [deferredState, effectiveItemFavorites],
   );
 
   const filteredSpells = useMemo(
-    () => filterSpells(spells, deferredSpellState, spellFavorites),
-    [spells, deferredSpellState, spellFavorites],
+    () => filterSpells(spells, deferredSpellState, effectiveSpellFavorites),
+    [deferredSpellState, effectiveSpellFavorites],
   );
 
   const searchTerm = activeTab === "items" ? state.search : spellState.search;
@@ -122,18 +200,94 @@ function App() {
   }, [activeTab, resetState, resetSpellState]);
 
   const handleFavoritesToggle = useCallback(() => {
+    if (isViewingShared) {
+      // If viewing shared, dismissing or toggling returns to all items
+      setSharedListDismissed(true);
+      removeSharedParamsFromUrl();
+      if (activeTab === "items") {
+        updateState({ favoritesOnly: false });
+      } else {
+        updateSpellState({ favoritesOnly: false });
+      }
+      return;
+    }
     if (activeTab === "items") {
       updateState({ favoritesOnly: !state.favoritesOnly });
     } else {
       updateSpellState({ favoritesOnly: !spellState.favoritesOnly });
     }
   }, [
+    isViewingShared,
     activeTab,
     state.favoritesOnly,
     spellState.favoritesOnly,
     updateState,
     updateSpellState,
   ]);
+
+  // Shared List Actions
+  const handleSaveSharedList = useCallback(() => {
+    if (!sharedList) return;
+    const imported = importSharedList(
+      sharedList.name,
+      sharedList.itemIds,
+      sharedList.spellIds,
+    );
+    setIsSavedShared(true);
+    setSharedListDismissed(true);
+    removeSharedParamsFromUrl();
+    if (activeTab === "items") {
+      updateState({ favoritesOnly: true });
+    } else {
+      updateSpellState({ favoritesOnly: true });
+    }
+    showToast(`Saved "${imported.name}" to your lists!`);
+  }, [
+    sharedList,
+    importSharedList,
+    activeTab,
+    updateState,
+    updateSpellState,
+    showToast,
+  ]);
+
+  const handleDismissShared = useCallback(() => {
+    setSharedListDismissed(true);
+    removeSharedParamsFromUrl();
+    if (activeTab === "items") {
+      updateState({ favoritesOnly: false });
+    } else {
+      updateSpellState({ favoritesOnly: false });
+    }
+    showToast("Viewing all items");
+  }, [activeTab, updateState, updateSpellState, showToast]);
+
+  const handleCopySharedLink = useCallback(async () => {
+    if (!sharedList) return;
+    const url = generateShareUrl(sharedList, activeTab);
+    const ok = await copyToClipboard(url);
+    if (ok) {
+      showToast("Link copied to clipboard!");
+    }
+  }, [sharedList, activeTab, showToast]);
+
+  const handleCopySharedMarkdown = useCallback(async () => {
+    if (!sharedList) return;
+    const url = generateShareUrl(sharedList, activeTab);
+    const md = generateMarkdownSummary(sharedList, itemsMap, spellsMap, url);
+    const ok = await copyToClipboard(md);
+    if (ok) {
+      showToast("Discord markdown copied to clipboard!");
+    }
+  }, [sharedList, activeTab, itemsMap, spellsMap, showToast]);
+
+  const handleShareActiveList = useCallback(async () => {
+    const url = generateShareUrl(activeList, activeTab);
+    const ok = await copyToClipboard(url);
+    if (ok) {
+      showToast(`Share link for "${activeList.name}" copied!`);
+    }
+  }, [activeList, activeTab, showToast]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -173,9 +327,9 @@ function App() {
         deferredState.maxPrice,
         deferredState.favoritesOnly,
         deferredState.sort,
-        favorites.size,
+        effectiveItemFavorites.size,
       ].join("|"),
-    [deferredState, favorites.size],
+    [deferredState, effectiveItemFavorites.size],
   );
 
   const spellResetKey = useMemo(
@@ -189,9 +343,9 @@ function App() {
         deferredSpellState.concentrationOnly,
         deferredSpellState.favoritesOnly,
         deferredSpellState.sort,
-        spellFavorites.size,
+        effectiveSpellFavorites.size,
       ].join("|"),
-    [deferredSpellState, spellFavorites.size],
+    [deferredSpellState, effectiveSpellFavorites.size],
   );
 
   return (
@@ -215,6 +369,20 @@ function App() {
         activeFilterCount={filterCount}
         activeTab={activeTab}
         onTabChange={setActiveTab}
+        rightSlot={
+          <button
+            type="button"
+            onClick={() => setListManagerOpen(true)}
+            title="Manage favorite lists & gear sets"
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
+          >
+            <Scroll className="size-3.5 text-muted-foreground" />
+            <span className="hidden sm:inline">Lists</span>
+            <span className="rounded-full bg-primary/20 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+              {lists.length}
+            </span>
+          </button>
+        }
         searchPlaceholder={
           activeTab === "items"
             ? "Search items by name or description…"
@@ -228,7 +396,7 @@ function App() {
             items={items}
             state={state}
             onChange={updateState}
-            favorites={favorites}
+            favorites={effectiveItemFavorites}
             priceBounds={[lowestPrice, highestPrice]}
             mobileOpen={mobileFiltersOpen}
             onMobileOpenChange={setMobileFiltersOpen}
@@ -238,13 +406,25 @@ function App() {
             spells={spells}
             state={spellState}
             onChange={updateSpellState}
-            favorites={spellFavorites}
+            favorites={effectiveSpellFavorites}
             mobileOpen={mobileFiltersOpen}
             onMobileOpenChange={setMobileFiltersOpen}
           />
         )}
 
         <div className="flex min-w-0 flex-1 flex-col gap-4">
+          {/* Shared List Banner if viewing from a shared link */}
+          {isViewingShared && sharedList && (
+            <SharedListBanner
+              sharedList={sharedList}
+              onSaveToLists={handleSaveSharedList}
+              onDismiss={handleDismissShared}
+              onCopyShareLink={handleCopySharedLink}
+              onCopyMarkdown={handleCopyMarkdown}
+              isSaved={isSavedShared}
+            />
+          )}
+
           {activeTab === "items" ? (
             <>
               <ResultsHeader
@@ -254,9 +434,19 @@ function App() {
                 onSortChange={(sort) => updateState({ sort })}
                 hasActiveFilters={hasActiveFilters}
                 onClearFilters={handleClearFilters}
-                favoritesOnly={state.favoritesOnly}
+                favoritesOnly={isViewingShared ? true : state.favoritesOnly}
                 onFavoritesToggle={handleFavoritesToggle}
-                favoriteCount={favorites.size}
+                favoriteCount={effectiveItemFavorites.size}
+                activeListName={
+                  isViewingShared && sharedList
+                    ? sharedList.name
+                    : activeList.name
+                }
+                lists={lists}
+                activeListId={activeListId}
+                onSelectActiveList={setActiveListId}
+                onOpenListManager={() => setListManagerOpen(true)}
+                onShareActiveList={handleShareActiveList}
               />
 
               {filteredItems.length === 0 ? (
@@ -266,9 +456,13 @@ function App() {
               ) : (
                 <ItemList
                   items={filteredItems}
-                  isFavorite={isFavorite}
+                  isFavorite={
+                    isViewingShared
+                      ? (id: number) => effectiveItemFavorites.has(id)
+                      : isItemInActiveList
+                  }
                   onSelect={setSelectedItem}
-                  onToggleFavorite={toggleFavorite}
+                  onToggleFavorite={toggleItemInActiveList}
                   resetKey={resetKey}
                 />
               )}
@@ -282,9 +476,19 @@ function App() {
                 onSortChange={(sort) => updateSpellState({ sort })}
                 hasActiveFilters={hasActiveFilters}
                 onClearFilters={handleClearFilters}
-                favoritesOnly={spellState.favoritesOnly}
+                favoritesOnly={isViewingShared ? true : spellState.favoritesOnly}
                 onFavoritesToggle={handleFavoritesToggle}
-                favoriteCount={spellFavorites.size}
+                favoriteCount={effectiveSpellFavorites.size}
+                activeListName={
+                  isViewingShared && sharedList
+                    ? sharedList.name
+                    : activeList.name
+                }
+                lists={lists}
+                activeListId={activeListId}
+                onSelectActiveList={setActiveListId}
+                onOpenListManager={() => setListManagerOpen(true)}
+                onShareActiveList={handleShareActiveList}
               />
 
               {filteredSpells.length === 0 ? (
@@ -294,9 +498,13 @@ function App() {
               ) : (
                 <SpellList
                   spells={filteredSpells}
-                  isFavorite={isSpellFavorite}
+                  isFavorite={
+                    isViewingShared
+                      ? (id: number) => effectiveSpellFavorites.has(id)
+                      : isSpellInActiveList
+                  }
                   onSelect={setSelectedSpell}
-                  onToggleFavorite={toggleSpellFavorite}
+                  onToggleFavorite={toggleSpellInActiveList}
                   resetKey={spellResetKey}
                 />
               )}
@@ -305,25 +513,78 @@ function App() {
         </div>
       </main>
 
+      {/* Item Details Dialog with List management */}
       <ItemDetailsDialog
         item={selectedItem}
         onOpenChange={(open) => !open && setSelectedItem(null)}
-        isFavorite={selectedItem ? isFavorite(selectedItem.id) : false}
+        isFavorite={
+          selectedItem
+            ? isViewingShared
+              ? effectiveItemFavorites.has(selectedItem.id)
+              : isItemInActiveList(selectedItem.id)
+            : false
+        }
         onToggleFavorite={() => {
-          if (selectedItem) toggleFavorite(selectedItem.id);
+          if (selectedItem) toggleItemInActiveList(selectedItem.id);
         }}
         spells={spells}
         onSelectSpell={handleSelectSpellFromItem}
+        lists={lists}
+        isItemInList={isItemInList}
+        isSpellInList={isSpellInList}
+        onToggleItemInList={toggleItemInList}
+        onToggleSpellInList={toggleSpellInList}
+        onCreateList={createList}
       />
 
+      {/* Spell Details Dialog with List management */}
       <SpellDetailsDialog
         spell={selectedSpell}
         onOpenChange={(open) => !open && setSelectedSpell(null)}
-        isFavorite={selectedSpell ? isSpellFavorite(selectedSpell.id) : false}
+        isFavorite={
+          selectedSpell
+            ? isViewingShared
+              ? effectiveSpellFavorites.has(selectedSpell.id)
+              : isSpellInActiveList(selectedSpell.id)
+            : false
+        }
         onToggleFavorite={() => {
-          if (selectedSpell) toggleSpellFavorite(selectedSpell.id);
+          if (selectedSpell) toggleSpellInActiveList(selectedSpell.id);
         }}
+        lists={lists}
+        isItemInList={isItemInList}
+        isSpellInList={isSpellInList}
+        onToggleItemInList={toggleItemInList}
+        onToggleSpellInList={toggleSpellInList}
+        onCreateList={createList}
       />
+
+      {/* Full List Management Dialog */}
+      <ListManagerDialog
+        open={listManagerOpen}
+        onOpenChange={setListManagerOpen}
+        lists={lists}
+        activeListId={activeListId}
+        onSelectActiveList={setActiveListId}
+        onCreateList={createList}
+        onRenameList={renameList}
+        onDeleteList={deleteList}
+        itemsMap={itemsMap}
+        spellsMap={spellsMap}
+        activeTab={activeTab}
+      />
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <aside
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-lg border border-border bg-popover px-4 py-2.5 text-xs font-semibold text-popover-foreground shadow-lg animate-in fade-in-0 slide-in-from-bottom-2"
+        >
+          <Check className="size-4 text-green-500" />
+          <span>{toastMessage}</span>
+        </aside>
+      )}
     </div>
   );
 }

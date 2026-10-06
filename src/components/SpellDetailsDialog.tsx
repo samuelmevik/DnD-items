@@ -10,12 +10,24 @@ import {
 } from "./ui/dialog";
 import { Tag } from "./Tag";
 import { cn } from "@/lib/utils";
+import { AddToListMenu } from "./AddToListMenu";
+import type { CustomList } from "@/lib/customLists";
 
 type SpellDetailsDialogProps = {
   spell: Spell | null;
   onOpenChange: (open: boolean) => void;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  lists?: CustomList[];
+  isItemInList?: (listId: string, itemId: number) => boolean;
+  isSpellInList?: (listId: string, spellId: number) => boolean;
+  onToggleItemInList?: (listId: string, itemId: number) => void;
+  onToggleSpellInList?: (listId: string, spellId: number) => void;
+  onCreateList?: (
+    name: string,
+    initialItemIds?: number[],
+    initialSpellIds?: number[],
+  ) => void;
 };
 
 export function SpellDetailsDialog({
@@ -23,6 +35,12 @@ export function SpellDetailsDialog({
   onOpenChange,
   isFavorite,
   onToggleFavorite,
+  lists,
+  isItemInList,
+  isSpellInList,
+  onToggleItemInList,
+  onToggleSpellInList,
+  onCreateList,
 }: SpellDetailsDialogProps) {
   const style = spell ? schoolStyle(spell.school) : null;
 
@@ -34,22 +52,35 @@ export function SpellDetailsDialog({
             <DialogHeader>
               <div className="flex items-start justify-between gap-4 pr-8">
                 <DialogTitle className="text-xl">{spell.name}</DialogTitle>
-                <button
-                  type="button"
-                  onClick={onToggleFavorite}
-                  aria-pressed={isFavorite}
-                  aria-label={
-                    isFavorite ? "Remove from favorites" : "Add to favorites"
-                  }
-                  className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                >
-                  <Star
-                    className={cn(
-                      "size-5",
-                      isFavorite && "fill-amber-400 text-amber-500",
-                    )}
-                  />
-                </button>
+                <div className="flex items-center gap-1.5">
+                  {lists && isSpellInList && onToggleSpellInList && onCreateList && (
+                    <AddToListMenu
+                      spellId={spell.id}
+                      lists={lists}
+                      isItemInList={isItemInList ?? (() => false)}
+                      isSpellInList={isSpellInList}
+                      onToggleItemInList={onToggleItemInList ?? (() => {})}
+                      onToggleSpellInList={onToggleSpellInList}
+                      onCreateList={onCreateList}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={onToggleFavorite}
+                    aria-pressed={isFavorite}
+                    aria-label={
+                      isFavorite ? "Remove from favorites" : "Add to favorites"
+                    }
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <Star
+                      className={cn(
+                        "size-5",
+                        isFavorite && "fill-amber-400 text-amber-500",
+                      )}
+                    />
+                  </button>
+                </div>
               </div>
             </DialogHeader>
 

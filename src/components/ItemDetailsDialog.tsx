@@ -13,6 +13,8 @@ import { Spinner } from "./Spinner";
 import ItemImage from "./ItemImage";
 import { cn } from "@/lib/utils";
 import { API_ATTRIBUTION, fetchItemDescription } from "@/lib/api";
+import { AddToListMenu } from "./AddToListMenu";
+import type { CustomList } from "@/lib/customLists";
 
 type ItemDetailsDialogProps = {
   item: Item | null;
@@ -21,6 +23,16 @@ type ItemDetailsDialogProps = {
   onToggleFavorite: () => void;
   spells: Spell[];
   onSelectSpell: (spell: Spell) => void;
+  lists?: CustomList[];
+  isItemInList?: (listId: string, itemId: number) => boolean;
+  isSpellInList?: (listId: string, spellId: number) => boolean;
+  onToggleItemInList?: (listId: string, itemId: number) => void;
+  onToggleSpellInList?: (listId: string, spellId: number) => void;
+  onCreateList?: (
+    name: string,
+    initialItemIds?: number[],
+    initialSpellIds?: number[],
+  ) => void;
 };
 
 const formatPrice = (price: number) => `${price.toLocaleString()} gp`;
@@ -165,6 +177,12 @@ export function ItemDetailsDialog({
   onToggleFavorite,
   spells,
   onSelectSpell,
+  lists,
+  isItemInList,
+  isSpellInList,
+  onToggleItemInList,
+  onToggleSpellInList,
+  onCreateList,
 }: ItemDetailsDialogProps) {
   const remote = useRemoteDescription(item);
   const spellMatcher = useSpellMatcher(spells);
@@ -189,22 +207,35 @@ export function ItemDetailsDialog({
             <DialogHeader>
               <div className="flex items-start justify-between gap-4 pr-8">
                 <DialogTitle className="text-xl">{item.name}</DialogTitle>
-                <button
-                  type="button"
-                  onClick={onToggleFavorite}
-                  aria-pressed={isFavorite}
-                  aria-label={
-                    isFavorite ? "Remove from favorites" : "Add to favorites"
-                  }
-                  className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                >
-                  <Star
-                    className={cn(
-                      "size-5",
-                      isFavorite && "fill-amber-400 text-amber-500",
-                    )}
-                  />
-                </button>
+                <div className="flex items-center gap-1.5">
+                  {lists && isItemInList && onToggleItemInList && onCreateList && (
+                    <AddToListMenu
+                      itemId={item.id}
+                      lists={lists}
+                      isItemInList={isItemInList}
+                      isSpellInList={isSpellInList ?? (() => false)}
+                      onToggleItemInList={onToggleItemInList}
+                      onToggleSpellInList={onToggleSpellInList ?? (() => {})}
+                      onCreateList={onCreateList}
+                    />
+                  )}
+                  <button
+                    type="button"
+                    onClick={onToggleFavorite}
+                    aria-pressed={isFavorite}
+                    aria-label={
+                      isFavorite ? "Remove from favorites" : "Add to favorites"
+                    }
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <Star
+                      className={cn(
+                        "size-5",
+                        isFavorite && "fill-amber-400 text-amber-500",
+                      )}
+                    />
+                  </button>
+                </div>
               </div>
             </DialogHeader>
 

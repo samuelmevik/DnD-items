@@ -89,6 +89,44 @@ export const decodeFilters = (
   };
 };
 
+const preserveSharedParams = (params: URLSearchParams) => {
+  if (typeof window === "undefined") return;
+  const currentParams = new URLSearchParams(window.location.search);
+  for (const key of [
+    "sharedList",
+    "listName",
+    "list",
+    "items",
+    "itemIds",
+    "spells",
+    "spellIds",
+  ]) {
+    const val = currentParams.get(key);
+    if (val && !params.has(key)) {
+      params.set(key, val);
+    }
+  }
+};
+
+export const removeSharedParamsFromUrl = () => {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  for (const key of [
+    "sharedList",
+    "listName",
+    "list",
+    "items",
+    "itemIds",
+    "spells",
+    "spellIds",
+  ]) {
+    url.searchParams.delete(key);
+  }
+  const cleanSearch = url.searchParams.toString();
+  const next = `${url.pathname}${cleanSearch ? "?" + cleanSearch : ""}`;
+  window.history.replaceState(null, "", next);
+};
+
 export const encodeFilters = (
   state: FilterState,
   defaults: FilterState,
@@ -103,6 +141,7 @@ export const encodeFilters = (
     params.set("max", String(state.maxPrice));
   if (state.favoritesOnly) params.set("fav", "1");
   if (state.sort !== defaults.sort) params.set("sort", state.sort);
+  preserveSharedParams(params);
   return params.toString();
 };
 
@@ -141,6 +180,7 @@ export const encodeSpellFilters = (
   if (state.concentrationOnly) params.set("conc", "1");
   if (state.favoritesOnly) params.set("fav", "1");
   if (state.sort !== defaults.sort) params.set("sort", state.sort);
+  preserveSharedParams(params);
   return params.toString();
 };
 
