@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Sparkles,
   Send,
@@ -24,7 +24,7 @@ import { Spell } from "@/data/spells";
 import { AVAILABLE_MODELS } from "@/lib/ai/types";
 import { useAiAssistant } from "@/lib/ai/useAiAssistant";
 import {
-  QUICK_PROMPT_CHIPS,
+  getIntelligentPromptChips,
   resolvePromptChipAction,
 } from "@/lib/ai/promptChips";
 import { AiMessageContent } from "./AiMessageContent";
@@ -119,7 +119,14 @@ export const AiAssistantDialog: React.FC<AiAssistantDialogProps> = ({
     }
   };
 
+  const suggestedChips = useMemo(() => {
+    return getIntelligentPromptChips(messages, input);
+  }, [messages, input]);
+
   const handleChipClick = (promptText: string) => {
+    if (!isGenerating) {
+      setInput("");
+    }
     resolvePromptChipAction(
       promptText,
       isGenerating,
@@ -456,23 +463,25 @@ export const AiAssistantDialog: React.FC<AiAssistantDialogProps> = ({
         {/* Input Bar (Only when model is ready) */}
         {isModelLoaded && (
           <div className="border-t border-stone-800 bg-stone-900/70 p-3 sm:px-5">
-            {/* Quick Prompt Chips */}
-            <div className="mb-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-              <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
-                Suggested:
-              </span>
-              {QUICK_PROMPT_CHIPS.map((chip) => (
-                <button
-                  key={chip.id}
-                  type="button"
-                  onClick={() => handleChipClick(chip.prompt)}
-                  className="inline-flex shrink-0 items-center gap-1 rounded-full border border-stone-800 bg-stone-900/80 px-2.5 py-1 text-[11px] font-medium text-stone-300 transition-colors hover:border-amber-500/40 hover:bg-stone-800 hover:text-amber-200 active:scale-95"
-                >
-                  <Sparkles className="size-3 text-amber-400" />
-                  <span>{chip.label}</span>
-                </button>
-              ))}
-            </div>
+            {/* Intelligent Prompt Chips */}
+            {suggestedChips.length > 0 && (
+              <div className="mb-2.5 flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+                <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-stone-500">
+                  Suggested:
+                </span>
+                {suggestedChips.map((chip) => (
+                  <button
+                    key={chip.id}
+                    type="button"
+                    onClick={() => handleChipClick(chip.prompt)}
+                    className="inline-flex shrink-0 items-center gap-1 rounded-full border border-stone-800 bg-stone-900/80 px-2.5 py-1 text-[11px] font-medium text-stone-300 transition-colors hover:border-amber-500/40 hover:bg-stone-800 hover:text-amber-200 active:scale-95"
+                  >
+                    <Sparkles className="size-3 text-amber-400" />
+                    <span>{chip.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="relative flex items-end gap-2">
               <textarea
