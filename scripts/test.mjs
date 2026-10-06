@@ -20,6 +20,10 @@ async function runAllTests() {
     await loadoutExportTest.runLoadoutExportTests();
     console.log("  ✓ loadoutExport tests passed");
 
+    const nlpFilterParserTest = await server.ssrLoadModule("./src/lib/filters/nlpFilterParser.test.ts");
+    nlpFilterParserTest.runNlpFilterParserTests();
+    console.log("  ✓ nlpFilterParser tests passed");
+
     console.log("🎉 All unit tests passed successfully!");
   } finally {
     await server.close();
