@@ -19,7 +19,7 @@ The ultimate objective is to become the premier AI-augmented tabletop companionâ
 - [ ] Add model selector dropdown in AI assistant (Llama-3.2-1B, Qwen2.5-1.5B, Gemma-2-2B) with VRAM badges
 - [x] Add "Ask AI about this item/spell" quick-action button in ItemDetailsDialog and SpellDetailsDialog
 - [ ] Add real-time generation speed (tokens/sec) and GPU status telemetry to AI dialog
-- [ ] Introduce pre-canned prompt chips for common table queries ("Level 3 Rogue Pack", "Anti-Undead Loadout", "Stealth Heist Prep")
+- [x] Introduce pre-canned prompt chips for common table queries ("Level 3 Rogue Pack", "Anti-Undead Loadout", "Stealth Heist Prep")
 - [ ] Add "Generate Thematic Variant" button on item cards (e.g., Ice Tongue from Flame Tongue)
 - [ ] Natural language query bar that maps user intent directly into active filter states
 - [ ] Export AI-generated loadouts as formatted Markdown handouts with item descriptions
