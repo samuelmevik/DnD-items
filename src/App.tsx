@@ -26,6 +26,7 @@ import {
   useCustomLists,
   calculateListGoldTotal,
   calculateListAttunementCount,
+} from "./lib/customLists";
 import { Header } from "./components/Header";
 import { MobileBottomBar } from "./components/MobileBottomBar";
 import FilterSidebar from "./components/FilterSidebar";
