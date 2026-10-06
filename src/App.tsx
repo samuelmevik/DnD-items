@@ -172,6 +172,7 @@ function App() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
+  const [aiAssistantInitialPrompt, setAiAssistantInitialPrompt] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {
@@ -306,6 +307,32 @@ function App() {
       showToast(`🎲 ${roll.expression}: ${roll.breakdown}`);
     },
     [showToast],
+  );
+
+  const handleClearAiInitialPrompt = useCallback(() => {
+    setAiAssistantInitialPrompt(null);
+  }, []);
+
+  const handleAskAiAboutItem = useCallback(
+    (item: Item) => {
+      handleSelectItem(null);
+      setAiAssistantInitialPrompt(
+        `What are the tactical synergies, rule adjudications, and creative uses for ${item.name}?`,
+      );
+      setAiAssistantOpen(true);
+    },
+    [handleSelectItem],
+  );
+
+  const handleAskAiAboutSpell = useCallback(
+    (spell: Spell) => {
+      handleSelectSpell(null);
+      setAiAssistantInitialPrompt(
+        `What are the tactical synergies, rule adjudications, and creative uses for the spell ${spell.name}?`,
+      );
+      setAiAssistantOpen(true);
+    },
+    [handleSelectSpell],
   );
 
   // Active list metrics (gold total & attunement budget)
@@ -844,6 +871,7 @@ function App() {
         onCreateList={createList}
         onRollDice={handleRollDice}
         onToast={showToast}
+        onAskAi={handleAskAiAboutItem}
       />
 
       {/* Spell Details Dialog with List management & comparison */}
@@ -872,6 +900,7 @@ function App() {
         onCreateList={createList}
         onRollDice={handleRollDice}
         onToast={showToast}
+        onAskAi={handleAskAiAboutSpell}
       />
 
       {/* Full List Management Dialog */}
@@ -976,7 +1005,14 @@ function App() {
         <Suspense fallback={null}>
           <AiAssistantDialog
             open={aiAssistantOpen}
-            onOpenChange={setAiAssistantOpen}
+            onOpenChange={(open) => {
+              setAiAssistantOpen(open);
+              if (!open) {
+                setAiAssistantInitialPrompt(null);
+              }
+            }}
+            initialPrompt={aiAssistantInitialPrompt}
+            onClearInitialPrompt={handleClearAiInitialPrompt}
             onSelectItem={handleSelectItem}
             onSelectSpell={handleSelectSpell}
             onCreateList={(name, itemIds, spellIds) => {

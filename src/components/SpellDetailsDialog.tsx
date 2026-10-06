@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Star, Share2, Copy, Check, Dices, X, Scale } from "lucide-react";
+import { Star, Share2, Copy, Check, Dices, X, Scale, Sparkles } from "lucide-react";
 import { Spell } from "@/data/spells";
 import { levelLabel } from "@/lib/spellFilters";
 import { schoolStyle } from "@/lib/schoolStyles";
@@ -38,6 +38,7 @@ type SpellDetailsDialogProps = {
   ) => void;
   onRollDice?: (res: DiceRollResult) => void;
   onToast?: (msg: string) => void;
+  onAskAi?: (spell: Spell) => void;
 };
 
 export function SpellDetailsDialog({
@@ -55,6 +56,7 @@ export function SpellDetailsDialog({
   onCreateList,
   onRollDice,
   onToast,
+  onAskAi,
 }: SpellDetailsDialogProps) {
   const style = spell ? schoolStyle(spell.school) : null;
   const [copiedLink, setCopiedLink] = useState(false);
@@ -135,6 +137,18 @@ export function SpellDetailsDialog({
                       <Copy className="size-4" />
                     )}
                   </button>
+
+                  {onAskAi && (
+                    <button
+                      type="button"
+                      onClick={() => onAskAi(spell)}
+                      title="Ask AI about this spell"
+                      aria-label="Ask AI about this spell"
+                      className="rounded-md p-1.5 text-amber-500 transition-colors hover:bg-amber-500/10 hover:text-amber-400 active:scale-95"
+                    >
+                      <Sparkles className="size-4" />
+                    </button>
+                  )}
 
                   {lists && isSpellInList && onToggleSpellInList && onCreateList && (
                     <AddToListMenu

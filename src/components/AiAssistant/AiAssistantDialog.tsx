@@ -32,6 +32,8 @@ interface AiAssistantDialogProps {
   onSelectSpell: (spell: Spell) => void;
   onCreateList: (name: string, itemIds: number[], spellIds: number[]) => void;
   onToast: (msg: string) => void;
+  initialPrompt?: string | null;
+  onClearInitialPrompt?: () => void;
 }
 
 const SAMPLE_PROMPTS = [
@@ -48,6 +50,8 @@ export const AiAssistantDialog: React.FC<AiAssistantDialogProps> = ({
   onSelectSpell,
   onCreateList,
   onToast,
+  initialPrompt,
+  onClearInitialPrompt,
 }) => {
   const {
     gpuStatus,
@@ -72,6 +76,14 @@ export const AiAssistantDialog: React.FC<AiAssistantDialogProps> = ({
   const [showModelSettings, setShowModelSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-send initial prompt if provided (e.g. from item or spell details quick-action)
+  useEffect(() => {
+    if (open && initialPrompt) {
+      sendMessage(initialPrompt);
+      onClearInitialPrompt?.();
+    }
+  }, [open, initialPrompt, sendMessage, onClearInitialPrompt]);
 
   // Auto-scroll to bottom of chat
   useEffect(() => {
