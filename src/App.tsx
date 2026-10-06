@@ -26,8 +26,8 @@ import {
   useCustomLists,
   calculateListGoldTotal,
   calculateListAttunementCount,
-} from "./lib/customLists";
 import { Header } from "./components/Header";
+import { MobileBottomBar } from "./components/MobileBottomBar";
 import FilterSidebar from "./components/FilterSidebar";
 import ItemList from "./components/ItemList";
 import { ItemTableView } from "./components/ItemTableView";
@@ -342,7 +342,8 @@ function App() {
   );
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const desktopSearchInputRef = useRef<HTMLInputElement>(null);
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null);
 
   // If a shared list is active, we constrain items/spells to the shared list by default
   const effectiveItemState = useMemo(() => {
@@ -488,8 +489,13 @@ function App() {
 
       if (e.key === "/") {
         e.preventDefault();
-        searchInputRef.current?.focus();
-        searchInputRef.current?.select();
+        if (typeof window !== "undefined" && window.innerWidth < 768) {
+          mobileSearchInputRef.current?.focus();
+          mobileSearchInputRef.current?.select();
+        } else {
+          desktopSearchInputRef.current?.focus();
+          desktopSearchInputRef.current?.select();
+        }
       } else if (e.key === "1") {
         e.preventDefault();
         handleTabChange("items");
@@ -581,9 +587,7 @@ function App() {
       <Header
         searchTerm={searchTerm}
         onSearchChange={handleSearchChange}
-        searchInputRef={searchInputRef}
-        onOpenMobileFilters={() => setMobileFiltersOpen(true)}
-        activeFilterCount={filterCount}
+        searchInputRef={desktopSearchInputRef}
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onOpenDiceTray={() => setDiceTrayOpen((prev) => !prev)}
@@ -612,7 +616,7 @@ function App() {
         }
       />
 
-      <main className="mx-auto flex max-w-7xl flex-col gap-4 p-3 md:flex-row md:p-4">
+      <main className="mx-auto flex max-w-7xl flex-col gap-4 p-3 pb-24 md:flex-row md:p-4 md:pb-6">
         {activeTab === "items" ? (
           <FilterSidebar
             items={items}
@@ -954,12 +958,27 @@ function App() {
         onOpenChange={setShortcutsOpen}
       />
 
+      {/* Mobile Bottom Navigation & Search Bar */}
+      <MobileBottomBar
+        searchTerm={searchTerm}
+        onSearchChange={handleSearchChange}
+        searchInputRef={mobileSearchInputRef}
+        onOpenFilters={() => setMobileFiltersOpen(true)}
+        activeFilterCount={filterCount}
+        activeTab={activeTab}
+        searchPlaceholder={
+          activeTab === "items"
+            ? "Search items by name or description…"
+            : "Search spells by name or description…"
+        }
+      />
+
       {/* Toast Notification */}
       {toastMessage && (
         <aside
           role="status"
           aria-live="polite"
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 z-[100] flex max-w-[92vw] items-center gap-2.5 rounded-xl border border-border bg-popover/95 backdrop-blur-md px-4 py-3 text-xs font-semibold text-popover-foreground shadow-2xl animate-in fade-in-0 slide-in-from-bottom-3"
+          className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 z-[100] flex max-w-[92vw] items-center gap-2.5 rounded-xl border border-border bg-popover/95 backdrop-blur-md px-4 py-3 text-xs font-semibold text-popover-foreground shadow-2xl animate-in fade-in-0 slide-in-from-bottom-3"
         >
           {toastMessage.startsWith("🎲") ? (
             <Dices className="size-4 shrink-0 text-amber-500" />

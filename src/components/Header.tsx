@@ -1,4 +1,4 @@
-import { Filter, Dices, Sparkles, History, Keyboard } from "lucide-react";
+import { Dices, Sparkles, History, Keyboard } from "lucide-react";
 import { ReactNode } from "react";
 import { DarkModeToggle } from "./DarkModeToggle";
 import SearchBar from "./SearchBar";
@@ -10,8 +10,8 @@ type HeaderProps = {
   searchTerm: string;
   onSearchChange: (term: string) => void;
   searchInputRef: React.RefObject<HTMLInputElement>;
-  onOpenMobileFilters: () => void;
-  activeFilterCount: number;
+  onOpenMobileFilters?: () => void;
+  activeFilterCount?: number;
   rightSlot?: ReactNode;
   activeTab: CatalogTab;
   onTabChange: (tab: CatalogTab) => void;
@@ -32,8 +32,6 @@ export function Header({
   searchTerm,
   onSearchChange,
   searchInputRef,
-  onOpenMobileFilters,
-  activeFilterCount,
   rightSlot,
   activeTab,
   onTabChange,
@@ -46,50 +44,41 @@ export function Header({
 }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-      <div className="mx-auto flex max-w-7xl items-center gap-2.5 p-3 md:gap-3.5 md:p-4">
-        <h1 className="hidden text-lg font-semibold tracking-tight md:block">
-          D&D Catalog
-        </h1>
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 p-2.5 sm:gap-3.5 sm:p-3 md:p-4">
+        {/* Left: Brand title & Segmented Tabs */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 select-none font-bold tracking-tight text-foreground">
+            <span className="text-base font-extrabold text-primary sm:text-lg">D&D</span>
+            <span className="hidden sm:inline text-xs sm:text-sm font-semibold text-muted-foreground">Catalog</span>
+          </div>
 
-        <div
-          role="tablist"
-          aria-label="Catalog section"
-          className="flex items-center gap-1 rounded-full border border-border bg-background p-1"
-        >
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab.key}
-              onClick={() => onTabChange(tab.key)}
-              className={cn(
-                "rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
-                activeTab === tab.key
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
+          <div
+            role="tablist"
+            aria-label="Catalog section"
+            className="flex items-center gap-1 rounded-full border border-border bg-background p-1"
+          >
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab.key}
+                onClick={() => onTabChange(tab.key)}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-xs font-semibold sm:px-3 sm:py-1.5 sm:text-sm transition-colors",
+                  activeTab === tab.key
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                )}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onOpenMobileFilters}
-          className="relative inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-3 text-sm text-foreground transition-colors hover:bg-accent md:hidden"
-          aria-label="Open filters"
-        >
-          <Filter className="size-4" aria-hidden />
-          Filters
-          {activeFilterCount > 0 && (
-            <span className="ml-0.5 rounded-full bg-primary px-1.5 text-xs font-medium text-primary-foreground">
-              {activeFilterCount}
-            </span>
-          )}
-        </button>
-        <div className="flex-1">
+        {/* Center: Search Bar (Desktop only, moved to MobileBottomBar on mobile) */}
+        <div className="hidden flex-1 md:block max-w-xl mx-2">
           <SearchBar
             inputRef={searchInputRef}
             searchTerm={searchTerm}
@@ -98,8 +87,8 @@ export function Header({
           />
         </div>
 
-        {/* Quick Tabletop Tools */}
-        <div className="flex items-center gap-1.5">
+        {/* Right: Quick Tools */}
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           {onOpenDiceTray && (
             <button
               type="button"
@@ -130,7 +119,12 @@ export function Header({
               onClick={onOpenHistory}
               title="Recently Viewed History (Hotkey: H)"
               aria-label="Recently viewed history"
-              className="relative hidden sm:inline-flex size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className={cn(
+                "relative size-9 items-center justify-center rounded-md border border-border bg-background text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
+                recentCount !== undefined && recentCount > 0
+                  ? "inline-flex"
+                  : "hidden sm:inline-flex",
+              )}
             >
               <History className="size-4" />
               {recentCount !== undefined && recentCount > 0 && (
