@@ -5,7 +5,6 @@ import {
   LEVELS,
   SCHOOLS,
   CASTING_TIMES,
-  CastingTimeCategory,
   SpellFilterState,
   classCount,
   levelCount,

@@ -123,7 +123,7 @@ export function ListManagerDialog({
     a.href = url;
     a.download = `dnd-gear-sets-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
-    URL.revokeObjectURL(a);
+    URL.revokeObjectURL(url);
     setBackupMessage("Backup exported!");
     setTimeout(() => setBackupMessage(null), 3000);
   };

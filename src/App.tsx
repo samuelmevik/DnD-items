@@ -10,6 +10,7 @@ import { Check, Scroll } from "lucide-react";
 import { highestPrice, Item, items, lowestPrice } from "./data/items";
 import { activeFilterCount, FilterState, filterItems } from "./lib/filters";
 import {
+  CatalogTab,
   useCatalogUrlState,
   removeSharedParamsFromUrl,
   decodeDeepLinkedItem,
