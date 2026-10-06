@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { Sparkles, Check, Plus, ExternalLink, Scroll, Package } from "lucide-react";
+import { Sparkles, Check, Plus, ExternalLink, Scroll, Package, FileText } from "lucide-react";
 import { Item, items } from "@/data/items";
 import { Spell, spells } from "@/data/spells";
 import { ParsedListAction } from "@/lib/ai/types";
+import { copyLoadoutMarkdownToClipboard } from "@/lib/ai/loadoutExport";
 import {
   itemsById,
   spellsById,
@@ -19,6 +20,7 @@ interface AiMessageContentProps {
   onSelectItem: (item: Item) => void;
   onSelectSpell: (spell: Spell) => void;
   onCreateList: (name: string, itemIds: number[], spellIds: number[]) => void;
+  onToast?: (msg: string) => void;
 }
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -29,8 +31,10 @@ export const AiMessageContent: React.FC<AiMessageContentProps> = ({
   onSelectItem,
   onSelectSpell,
   onCreateList,
+  onToast,
 }) => {
   const [listCreated, setListCreated] = useState(false);
+  const [markdownCopied, setMarkdownCopied] = useState(false);
 
   // Fallback entity extractor: if the LLM forgot to output [CREATE_LIST:...],
   // detect any items & spells mentioned in the text so the user can still 1-click create the list!
@@ -127,6 +131,20 @@ export const AiMessageContent: React.FC<AiMessageContentProps> = ({
       effectiveActionList.spellIds,
     );
     setListCreated(true);
+  };
+
+  const handleExportMarkdown = async () => {
+    if (!effectiveActionList) return;
+    const success = await copyLoadoutMarkdownToClipboard(effectiveActionList);
+    if (success) {
+      setMarkdownCopied(true);
+      onToast?.(`📋 Exported "${effectiveActionList.name}" Markdown handout!`);
+      setTimeout(() => {
+        setMarkdownCopied(false);
+      }, 2000);
+    } else {
+      onToast?.("⚠️ Unable to copy Markdown handout to clipboard.");
+    }
   };
 
   // Linkify unlinked names inside plain text
@@ -312,38 +330,58 @@ export const AiMessageContent: React.FC<AiMessageContentProps> = ({
 
       {effectiveActionList && (
         <div className="mt-3 rounded-lg border border-amber-500/30 bg-gradient-to-br from-amber-950/30 to-stone-900/40 p-3.5 shadow-md">
-          <div className="flex items-center justify-between gap-2 border-b border-amber-500/20 pb-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-2.5">
             <div className="flex items-center gap-2">
               <Sparkles className="size-4 text-amber-400" />
               <div>
-                <h4 className="font-semibold text-amber-200 text-sm">{effectiveActionList.name}</h4>
+                <h4 className="text-sm font-semibold text-amber-200">{effectiveActionList.name}</h4>
                 <p className="text-[11px] text-stone-400">
                   {effectiveActionList.itemIds.length} items · {effectiveActionList.spellIds.length} spells
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={handleCreateList}
-              disabled={listCreated}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold shadow-xs transition-all ${
-                listCreated
-                  ? "bg-emerald-600/80 text-white cursor-default"
-                  : "bg-amber-600 text-white hover:bg-amber-500 active:scale-95"
-              }`}
-            >
-              {listCreated ? (
-                <>
-                  <Check className="size-3.5" />
-                  <span>Saved to Lists</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="size-3.5" />
-                  <span>Save to My Lists</span>
-                </>
-              )}
-            </button>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleExportMarkdown}
+                className="inline-flex items-center gap-1.5 rounded-md border border-stone-700 bg-stone-900/90 px-2.5 py-1.5 text-xs font-semibold text-stone-200 shadow-sm transition-all hover:border-amber-500/50 hover:bg-stone-800 hover:text-amber-200 active:scale-95"
+                title="Export loadout as formatted Markdown handout for Discord, Notion, or Obsidian"
+              >
+                {markdownCopied ? (
+                  <>
+                    <Check className="size-3.5 text-emerald-400" />
+                    <span className="text-emerald-300">Handout Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <FileText className="size-3.5 text-amber-400" />
+                    <span>Export Markdown</span>
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateList}
+                disabled={listCreated}
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold shadow-sm transition-all ${
+                  listCreated
+                    ? "cursor-default bg-emerald-600/80 text-white"
+                    : "bg-amber-600 text-white hover:bg-amber-500 active:scale-95"
+                }`}
+              >
+                {listCreated ? (
+                  <>
+                    <Check className="size-3.5" />
+                    <span>Saved to Lists</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="size-3.5" />
+                    <span>Save to My Lists</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="mt-2.5 flex flex-wrap gap-1.5">

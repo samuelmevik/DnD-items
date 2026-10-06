@@ -22,5 +22,5 @@ The ultimate objective is to become the premier AI-augmented tabletop companionâ
 - [x] Introduce pre-canned prompt chips for common table queries ("Level 3 Rogue Pack", "Anti-Undead Loadout", "Stealth Heist Prep")
 - [ ] Add "Generate Thematic Variant" button on item cards (e.g., Ice Tongue from Flame Tongue)
 - [ ] Natural language query bar that maps user intent directly into active filter states
-- [ ] Export AI-generated loadouts as formatted Markdown handouts with item descriptions
+- [x] Export AI-generated loadouts as formatted Markdown handouts with item descriptions
 - [ ] Cache WebGPU compiled shaders in IndexedDB for instant secondary model boot times
