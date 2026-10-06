@@ -32,7 +32,12 @@ export function CompareFloatingBar({
   if (count === 0) return null;
 
   return (
-    <div className="fixed bottom-[4.5rem] md:bottom-4 left-1/2 -translate-x-1/2 z-40 flex max-w-[94vw] items-center gap-2 rounded-xl border border-primary/30 bg-card/95 backdrop-blur-md p-2 pl-3 shadow-xl ring-1 ring-primary/20 animate-in fade-in-0 slide-in-from-bottom-4">
+    <div
+      style={{
+        bottom: "max(4.5rem, calc(4.25rem + env(safe-area-inset-bottom, 0px)))",
+      }}
+      className="fixed left-1/2 -translate-x-1/2 z-40 flex max-w-[94vw] items-center gap-2 rounded-xl border border-primary/30 bg-card/95 backdrop-blur-md p-2 pl-3 shadow-xl ring-1 ring-primary/20 animate-in fade-in-0 slide-in-from-bottom-4 md:bottom-4"
+    >
       <div className="flex items-center gap-2 pr-1">
         <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
           <Scale className="size-4" />

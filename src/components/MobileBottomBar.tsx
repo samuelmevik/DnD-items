@@ -1,4 +1,5 @@
 import { Search, Filter, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { CatalogTab } from "./Header";
@@ -26,10 +27,73 @@ export function MobileBottomBar({
     activeTab === "items" ? "Search items…" : "Search spells…";
   const placeholder = searchPlaceholder ?? defaultPlaceholder;
 
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // Blur active search input when scrolling occurs to dismiss the keyboard cleanly
+    // and prevent the fixed bottom bar from becoming detached or jumping.
+    const handleScrollOrTouch = () => {
+      if (document.activeElement === searchInputRef?.current) {
+        searchInputRef.current?.blur();
+      }
+    };
+
+    window.addEventListener("scroll", handleScrollOrTouch, { passive: true });
+    window.addEventListener("touchmove", handleScrollOrTouch, { passive: true });
+
+    // Track visualViewport changes (software keyboard show/hide on mobile)
+    const vv = window.visualViewport;
+    if (!vv) {
+      return () => {
+        window.removeEventListener("scroll", handleScrollOrTouch);
+        window.removeEventListener("touchmove", handleScrollOrTouch);
+      };
+    }
+
+    const handleViewportChange = () => {
+      const offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setKeyboardOffset(offset);
+    };
+
+    vv.addEventListener("resize", handleViewportChange);
+    vv.addEventListener("scroll", handleViewportChange);
+
+    return () => {
+      window.removeEventListener("scroll", handleScrollOrTouch);
+      window.removeEventListener("touchmove", handleScrollOrTouch);
+      vv.removeEventListener("resize", handleViewportChange);
+      vv.removeEventListener("scroll", handleViewportChange);
+    };
+  }, [searchInputRef]);
+
   return (
     <nav
       aria-label="Mobile search and filters"
-      className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/85 px-3 pt-2 pb-[max(0.65rem,env(safe-area-inset-bottom))] shadow-[0_-4px_20px_rgba(0,0,0,0.12)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.4)] md:hidden"
+      style={{
+        transform:
+          keyboardOffset > 0
+            ? `translate3d(0, -${keyboardOffset}px, 0)`
+            : "translate3d(0, 0, 0)",
+        WebkitTransform:
+          keyboardOffset > 0
+            ? `translate3d(0, -${keyboardOffset}px, 0)`
+            : "translate3d(0, 0, 0)",
+        WebkitBackfaceVisibility: "hidden",
+        backfaceVisibility: "hidden",
+        paddingBottom: "max(0.65rem, env(safe-area-inset-bottom, 0px))",
+      }}
+      className={cn(
+        "fixed bottom-0 inset-x-0 z-30",
+        "border-t border-border bg-background/95 backdrop-blur-md",
+        "supports-[backdrop-filter]:bg-background/85",
+        "px-3 pt-2",
+        "shadow-[0_-4px_20px_rgba(0,0,0,0.12)] dark:shadow-[0_-4px_20px_rgba(0,0,0,0.4)]",
+        "md:hidden",
+        "transform-gpu will-change-transform",
+        "touch-manipulation",
+      )}
     >
       <div className="mx-auto flex max-w-lg items-center gap-2">
         {/* Search Input Container */}
@@ -51,7 +115,7 @@ export function MobileBottomBar({
               }
             }}
             aria-label={placeholder}
-            className="h-10 w-full rounded-xl border-border bg-card/90 pl-9 pr-8 text-sm placeholder:text-muted-foreground/70 shadow-xs focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary"
+            className="h-10 w-full rounded-xl border-border bg-card/90 pl-9 pr-8 text-base md:text-sm placeholder:text-muted-foreground/70 shadow-xs focus-visible:bg-background focus-visible:ring-1 focus-visible:ring-primary"
           />
           {searchTerm && (
             <button

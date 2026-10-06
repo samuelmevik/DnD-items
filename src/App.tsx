@@ -617,7 +617,7 @@ function App() {
         }
       />
 
-      <main className="mx-auto flex max-w-7xl flex-col gap-4 p-3 pb-24 md:flex-row md:p-4 md:pb-6">
+      <main className="mx-auto flex max-w-7xl flex-col gap-4 p-3 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] md:flex-row md:p-4 md:pb-6">
         {activeTab === "items" ? (
           <FilterSidebar
             items={items}
@@ -979,7 +979,7 @@ function App() {
         <aside
           role="status"
           aria-live="polite"
-          className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 z-[100] flex max-w-[92vw] items-center gap-2.5 rounded-xl border border-border bg-popover/95 backdrop-blur-md px-4 py-3 text-xs font-semibold text-popover-foreground shadow-2xl animate-in fade-in-0 slide-in-from-bottom-3"
+          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] md:bottom-6 left-1/2 -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 z-[100] flex max-w-[92vw] items-center gap-2.5 rounded-xl border border-border bg-popover/95 backdrop-blur-md px-4 py-3 text-xs font-semibold text-popover-foreground shadow-2xl animate-in fade-in-0 slide-in-from-bottom-3"
         >
           {toastMessage.startsWith("🎲") ? (
             <Dices className="size-4 shrink-0 text-amber-500" />
