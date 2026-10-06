@@ -1,8 +1,12 @@
 import { Search, Filter, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { parseCompendiumQuery } from "@/lib/filters/nlpFilterParser";
+import { SmartFilterChips } from "./SmartFilterChips";
 import type { CatalogTab } from "./Header";
+import type { FilterState } from "@/lib/filters";
+import type { SpellFilterState } from "@/lib/spellFilters";
 
 type MobileBottomBarProps = {
   searchTerm: string;
@@ -12,6 +16,15 @@ type MobileBottomBarProps = {
   activeFilterCount: number;
   activeTab: CatalogTab;
   searchPlaceholder?: string;
+  onApplySmartFilters?: (
+    targetTab: CatalogTab,
+    itemPatch: Partial<FilterState>,
+    spellPatch: Partial<SpellFilterState>,
+    residualQuery: string,
+    appliedChipLabels: string[],
+  ) => void;
+  onRevertSmartFilters?: () => void;
+  canRevertSmartFilters?: boolean;
 };
 
 export function MobileBottomBar({
@@ -22,18 +35,35 @@ export function MobileBottomBar({
   activeFilterCount,
   activeTab,
   searchPlaceholder,
+  onApplySmartFilters,
+  onRevertSmartFilters,
+  canRevertSmartFilters,
 }: MobileBottomBarProps) {
   const defaultPlaceholder =
     activeTab === "items" ? "Search items…" : "Search spells…";
   const placeholder = searchPlaceholder ?? defaultPlaceholder;
 
   const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const [isDismissed, setIsDismissed] = useState(false);
+
+  useEffect(() => {
+    setIsDismissed(false);
+  }, [searchTerm]);
+
+  const parsedIntent = useMemo(() => {
+    if (!activeTab || !searchTerm || searchTerm.trim().length < 2) return null;
+    const res = parseCompendiumQuery(searchTerm, activeTab);
+    return res.hasIntents ? res : null;
+  }, [searchTerm, activeTab]);
+
+  const showSmartChips = Boolean(
+    parsedIntent && !isDismissed && onApplySmartFilters,
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     // Blur active search input when scrolling occurs to dismiss the keyboard cleanly
-    // and prevent the fixed bottom bar from becoming detached or jumping.
     const handleScrollOrTouch = () => {
       if (document.activeElement === searchInputRef?.current) {
         searchInputRef.current?.blur();
@@ -95,6 +125,29 @@ export function MobileBottomBar({
         "touch-manipulation",
       )}
     >
+      {/* Floating Smart Filter Preview docked right above mobile bar */}
+      {showSmartChips && parsedIntent && onApplySmartFilters && (
+        <div className="absolute bottom-full inset-x-3 mb-2 z-50">
+          <SmartFilterChips
+            parsedIntent={parsedIntent}
+            activeTab={activeTab}
+            onApply={(targetTab, itemPatch, spellPatch, residualQuery, labels) => {
+              onApplySmartFilters(
+                targetTab,
+                itemPatch,
+                spellPatch,
+                residualQuery,
+                labels,
+              );
+              setIsDismissed(true);
+            }}
+            onDismiss={() => setIsDismissed(true)}
+            onRevert={onRevertSmartFilters}
+            canRevert={canRevertSmartFilters}
+          />
+        </div>
+      )}
+
       <div className="mx-auto flex max-w-lg items-center gap-2">
         {/* Search Input Container */}
         <div className="relative flex-1">
@@ -109,9 +162,31 @@ export function MobileBottomBar({
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Escape" && searchTerm) {
+              if (e.key === "Escape") {
+                if (showSmartChips) {
+                  e.preventDefault();
+                  setIsDismissed(true);
+                  return;
+                }
+                if (searchTerm) {
+                  e.preventDefault();
+                  onSearchChange("");
+                }
+              } else if (
+                e.key === "Enter" &&
+                showSmartChips &&
+                parsedIntent &&
+                onApplySmartFilters
+              ) {
                 e.preventDefault();
-                onSearchChange("");
+                onApplySmartFilters(
+                  parsedIntent.targetTab ?? activeTab,
+                  parsedIntent.itemPatch,
+                  parsedIntent.spellPatch,
+                  parsedIntent.residualQuery,
+                  parsedIntent.chips.map((c) => c.displayValue),
+                );
+                setIsDismissed(true);
               }
             }}
             aria-label={placeholder}

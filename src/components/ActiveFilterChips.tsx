@@ -11,6 +11,8 @@ type ActiveFilterChipsProps = {
   spellState?: SpellFilterState;
   onSpellChange?: (patch: Partial<SpellFilterState>) => void;
   onClearAll: () => void;
+  onRevert?: () => void;
+  canRevert?: boolean;
 };
 
 export function ActiveFilterChips({
@@ -21,6 +23,8 @@ export function ActiveFilterChips({
   spellState,
   onSpellChange,
   onClearAll,
+  onRevert,
+  canRevert,
 }: ActiveFilterChipsProps) {
   if (tab === "items" && itemState && onItemChange) {
     const chips: { key: string; label: string; onRemove: () => void }[] = [];
@@ -109,6 +113,17 @@ export function ActiveFilterChips({
           >
             <RotateCcw className="size-3" />
             <span>Reset</span>
+          </button>
+        )}
+        {canRevert && onRevert && (
+          <button
+            type="button"
+            onClick={onRevert}
+            className="inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
+            title="Revert smart filter"
+          >
+            <RotateCcw className="size-3" />
+            <span>Revert Smart Filter</span>
           </button>
         )}
       </div>
@@ -217,6 +232,17 @@ export function ActiveFilterChips({
           >
             <RotateCcw className="size-3" />
             <span>Reset</span>
+          </button>
+        )}
+        {canRevert && onRevert && (
+          <button
+            type="button"
+            onClick={onRevert}
+            className="inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
+            title="Revert smart filter"
+          >
+            <RotateCcw className="size-3" />
+            <span>Revert Smart Filter</span>
           </button>
         )}
       </div>

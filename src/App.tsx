@@ -8,7 +8,7 @@ import {
   lazy,
   Suspense,
 } from "react";
-import { Check, Scroll, Dices, Sparkles } from "lucide-react";
+import { Check, Scroll, Dices, Sparkles, RotateCcw } from "lucide-react";
 import { highestPrice, Item, items, lowestPrice } from "./data/items";
 import { activeFilterCount, FilterState, filterItems } from "./lib/filters";
 import {
@@ -424,6 +424,95 @@ function App() {
     else resetSpellState();
   }, [activeTab, resetState, resetSpellState]);
 
+  // Smart filter intent application and 1-click revert snapshot
+  const [smartFilterRevertSnapshot, setSmartFilterRevertSnapshot] = useState<{
+    tab: CatalogTab;
+    itemState: FilterState;
+    spellState: SpellFilterState;
+    searchTerm: string;
+    appliedLabels: string[];
+  } | null>(null);
+
+  const handleApplySmartFilters = useCallback(
+    (
+      targetTab: CatalogTab,
+      itemPatch: Partial<FilterState>,
+      spellPatch: Partial<SpellFilterState>,
+      residualQuery: string,
+      appliedChipLabels: string[],
+    ) => {
+      setSmartFilterRevertSnapshot({
+        tab: activeTab,
+        itemState: { ...state },
+        spellState: { ...spellState },
+        searchTerm,
+        appliedLabels: appliedChipLabels,
+      });
+
+      if (targetTab !== activeTab) {
+        handleTabChange(targetTab);
+      }
+
+      if (targetTab === "items") {
+        updateState({
+          ...itemPatch,
+          search: residualQuery,
+        });
+      } else {
+        updateSpellState({
+          ...spellPatch,
+          search: residualQuery,
+        });
+      }
+
+      showToast(
+        `✨ Applied smart filters: ${appliedChipLabels.join(", ")}${
+          residualQuery ? ` • Search: "${residualQuery}"` : ""
+        }`,
+      );
+    },
+    [
+      activeTab,
+      state,
+      spellState,
+      searchTerm,
+      handleTabChange,
+      updateState,
+      updateSpellState,
+      showToast,
+    ],
+  );
+
+  const handleRevertSmartFilters = useCallback(() => {
+    if (!smartFilterRevertSnapshot) return;
+    const {
+      tab: prevTab,
+      itemState: prevItem,
+      spellState: prevSpell,
+      searchTerm: prevSearch,
+    } = smartFilterRevertSnapshot;
+
+    if (prevTab !== activeTab) {
+      handleTabChange(prevTab);
+    }
+
+    if (prevTab === "items") {
+      updateState({ ...prevItem, search: prevSearch });
+    } else {
+      updateSpellState({ ...prevSpell, search: prevSearch });
+    }
+
+    setSmartFilterRevertSnapshot(null);
+    showToast("Reverted smart filters");
+  }, [
+    smartFilterRevertSnapshot,
+    activeTab,
+    handleTabChange,
+    updateState,
+    updateSpellState,
+    showToast,
+  ]);
+
   const handleFavoritesToggle = useCallback(() => {
     if (isViewingShared) {
       // If viewing shared, dismissing or toggling returns to all items
@@ -654,6 +743,9 @@ function App() {
             ? "Search items by name or description… (/)"
             : "Search spells by name or description… (/)"
         }
+        onApplySmartFilters={handleApplySmartFilters}
+        onRevertSmartFilters={handleRevertSmartFilters}
+        canRevertSmartFilters={Boolean(smartFilterRevertSnapshot)}
       />
 
       <main className="mx-auto flex max-w-7xl flex-col gap-4 p-3 pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))] md:flex-row md:p-4 md:pb-6">
@@ -735,6 +827,8 @@ function App() {
                 onItemChange={updateState}
                 defaultPriceRange={[lowestPrice, highestPrice]}
                 onClearAll={handleClearFilters}
+                onRevert={handleRevertSmartFilters}
+                canRevert={Boolean(smartFilterRevertSnapshot)}
               />
 
               {filteredItems.length === 0 ? (
@@ -803,6 +897,8 @@ function App() {
                 spellState={spellState}
                 onSpellChange={updateSpellState}
                 onClearAll={handleClearFilters}
+                onRevert={handleRevertSmartFilters}
+                canRevert={Boolean(smartFilterRevertSnapshot)}
               />
 
               {filteredSpells.length === 0 ? (
@@ -1030,11 +1126,11 @@ function App() {
         onClick={() => setAiAssistantOpen(true)}
         title="Open WebGPU AI Assistant (Hotkey: J)"
         aria-label="Open AI Assistant"
-        className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-3.5 md:bottom-5 md:right-5 z-30 flex items-center gap-2 rounded-full border border-amber-500/50 bg-stone-900/90 hover:bg-stone-850 px-3 py-2 text-xs font-semibold text-amber-300 shadow-xl backdrop-blur-md transition-all hover:border-amber-400 hover:scale-105 active:scale-95"
+        className="hover:bg-stone-850 fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-3.5 z-30 flex items-center gap-2 rounded-full border border-amber-500/50 bg-stone-900/90 px-3 py-2 text-xs font-semibold text-amber-300 shadow-xl backdrop-blur-md transition-all hover:scale-105 hover:border-amber-400 active:scale-95 md:bottom-5 md:right-5"
       >
         <Sparkles className="size-3.5 text-amber-400" />
         <span className="hidden sm:inline">AI Assistant</span>
-        <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-300 uppercase">
+        <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold uppercase text-amber-300">
           WebGPU
         </span>
       </button>
@@ -1052,6 +1148,9 @@ function App() {
             ? "Search items by name or description…"
             : "Search spells by name or description…"
         }
+        onApplySmartFilters={handleApplySmartFilters}
+        onRevertSmartFilters={handleRevertSmartFilters}
+        canRevertSmartFilters={Boolean(smartFilterRevertSnapshot)}
       />
 
       {/* Toast Notification */}
@@ -1059,14 +1158,26 @@ function App() {
         <aside
           role="status"
           aria-live="polite"
-          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] md:bottom-6 left-1/2 -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 z-[100] flex max-w-[92vw] items-center gap-2.5 rounded-xl border border-border bg-popover/95 backdrop-blur-md px-4 py-3 text-xs font-semibold text-popover-foreground shadow-2xl animate-in fade-in-0 slide-in-from-bottom-3"
+          className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] left-1/2 z-[100] flex max-w-[92vw] -translate-x-1/2 items-center gap-2.5 rounded-xl border border-border bg-popover/95 px-4 py-3 text-xs font-semibold text-popover-foreground shadow-2xl backdrop-blur-md animate-in fade-in-0 slide-in-from-bottom-3 sm:left-auto sm:right-6 sm:translate-x-0 md:bottom-6"
         >
           {toastMessage.startsWith("🎲") ? (
             <Dices className="size-4 shrink-0 text-amber-500" />
+          ) : toastMessage.startsWith("✨") ? (
+            <Sparkles className="size-4 shrink-0 text-amber-500" />
           ) : (
             <Check className="size-4 shrink-0 text-green-500" />
           )}
           <span className="truncate">{toastMessage}</span>
+          {smartFilterRevertSnapshot && toastMessage.startsWith("✨") && (
+            <button
+              type="button"
+              onClick={handleRevertSmartFilters}
+              className="ml-1 inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-600 transition-colors hover:bg-amber-500/20 active:scale-95 dark:text-amber-400"
+            >
+              <RotateCcw className="size-3" />
+              <span>Undo</span>
+            </button>
+          )}
         </aside>
       )}
     </div>
