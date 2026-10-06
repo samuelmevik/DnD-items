@@ -51,6 +51,7 @@ export function SpellDetailsDialog({
   onCreateList,
   onRollDice,
   onToast,
+}: SpellDetailsDialogProps) {
   const style = spell ? schoolStyle(spell.school) : null;
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedMarkdown, setCopiedMarkdown] = useState(false);
