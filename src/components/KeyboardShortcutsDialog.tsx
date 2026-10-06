@@ -15,6 +15,7 @@ const SHORTCUTS = [
   { key: "/", desc: "Focus Search bar" },
   { key: "1", desc: "Switch to Items catalog" },
   { key: "2", desc: "Switch to Spells catalog" },
+  { key: "J", desc: "Open WebGPU AI Assistant" },
   { key: "D", desc: "Toggle Quick Dice Tray" },
   { key: "R", desc: "Open Random Loot / Spell Roller" },
   { key: "L", desc: "Open Favorite Lists & Gear Sets" },

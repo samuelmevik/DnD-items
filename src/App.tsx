@@ -5,8 +5,10 @@ import {
   useMemo,
   useRef,
   useState,
+  lazy,
+  Suspense,
 } from "react";
-import { Check, Scroll, Dices } from "lucide-react";
+import { Check, Scroll, Dices, Sparkles } from "lucide-react";
 import { highestPrice, Item, items, lowestPrice } from "./data/items";
 import { activeFilterCount, FilterState, filterItems } from "./lib/filters";
 import {
@@ -60,6 +62,11 @@ import { CompareDialog } from "./components/CompareDialog";
 import { QuickDiceTray } from "./components/QuickDiceTray";
 import { RandomLootDialog } from "./components/RandomLootDialog";
 import { KeyboardShortcutsDialog } from "./components/KeyboardShortcutsDialog";
+const AiAssistantDialog = lazy(() =>
+  import("./components/AiAssistant/AiAssistantDialog").then((m) => ({
+    default: m.AiAssistantDialog,
+  })),
+);
 
 // Bundled background images — Vite resolves these to hashed URLs at build
 // time, so they ship with the site for every visitor. Replace these two
@@ -164,6 +171,7 @@ function App() {
   const [randomLootOpen, setRandomLootOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {
@@ -518,6 +526,9 @@ function App() {
       } else if (e.key === "c" || e.key === "C") {
         e.preventDefault();
         setCompareModalOpen(true);
+      } else if (e.key === "j" || e.key === "J") {
+        e.preventDefault();
+        setAiAssistantOpen((prev) => !prev);
       } else if (e.key === "?") {
         e.preventDefault();
         setShortcutsOpen((prev) => !prev);
@@ -593,6 +604,7 @@ function App() {
         onTabChange={handleTabChange}
         onOpenDiceTray={() => setDiceTrayOpen((prev) => !prev)}
         onOpenRandomLoot={() => setRandomLootOpen(true)}
+        onOpenAiAssistant={() => setAiAssistantOpen(true)}
         onOpenHistory={() => setHistoryOpen(true)}
         recentCount={recentViews.length}
         onOpenShortcuts={() => setShortcutsOpen(true)}
@@ -958,6 +970,38 @@ function App() {
         open={shortcutsOpen}
         onOpenChange={setShortcutsOpen}
       />
+
+      {/* WebGPU In-Browser AI Assistant (Lazy loaded on demand) */}
+      {aiAssistantOpen && (
+        <Suspense fallback={null}>
+          <AiAssistantDialog
+            open={aiAssistantOpen}
+            onOpenChange={setAiAssistantOpen}
+            onSelectItem={handleSelectItem}
+            onSelectSpell={handleSelectSpell}
+            onCreateList={(name, itemIds, spellIds) => {
+              const newList = createList(name, itemIds, spellIds);
+              setActiveListId(newList.id);
+            }}
+            onToast={showToast}
+          />
+        </Suspense>
+      )}
+
+      {/* Floating AI Assistant Trigger Pill */}
+      <button
+        type="button"
+        onClick={() => setAiAssistantOpen(true)}
+        title="Open WebGPU AI Assistant (Hotkey: J)"
+        aria-label="Open AI Assistant"
+        className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] right-3.5 md:bottom-5 md:right-5 z-30 flex items-center gap-2 rounded-full border border-amber-500/50 bg-stone-900/90 hover:bg-stone-850 px-3 py-2 text-xs font-semibold text-amber-300 shadow-xl backdrop-blur-md transition-all hover:border-amber-400 hover:scale-105 active:scale-95"
+      >
+        <Sparkles className="size-3.5 text-amber-400" />
+        <span className="hidden sm:inline">AI Assistant</span>
+        <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[9px] font-bold text-amber-300 uppercase">
+          WebGPU
+        </span>
+      </button>
 
       {/* Mobile Bottom Navigation & Search Bar */}
       <MobileBottomBar

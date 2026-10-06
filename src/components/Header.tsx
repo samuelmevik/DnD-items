@@ -1,4 +1,4 @@
-import { Dices, Sparkles, History, Keyboard } from "lucide-react";
+import { Dices, Sparkles, History, Keyboard, Bot } from "lucide-react";
 import { ReactNode } from "react";
 import { DarkModeToggle } from "./DarkModeToggle";
 import SearchBar from "./SearchBar";
@@ -18,6 +18,7 @@ type HeaderProps = {
   searchPlaceholder?: string;
   onOpenDiceTray?: () => void;
   onOpenRandomLoot?: () => void;
+  onOpenAiAssistant?: () => void;
   onOpenHistory?: () => void;
   recentCount?: number;
   onOpenShortcuts?: () => void;
@@ -38,6 +39,7 @@ export function Header({
   searchPlaceholder,
   onOpenDiceTray,
   onOpenRandomLoot,
+  onOpenAiAssistant,
   onOpenHistory,
   recentCount,
   onOpenShortcuts,
@@ -89,6 +91,18 @@ export function Header({
 
         {/* Right: Quick Tools */}
         <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {onOpenAiAssistant && (
+            <button
+              type="button"
+              onClick={onOpenAiAssistant}
+              title="AI Assistant (WebGPU) (Hotkey: J)"
+              aria-label="Open AI Assistant"
+              className="inline-flex size-9 items-center justify-center rounded-md border border-amber-500/40 bg-amber-500/10 text-amber-500 transition-colors hover:bg-amber-500/20 hover:border-amber-400 active:scale-95"
+            >
+              <Bot className="size-4 text-amber-500" />
+            </button>
+          )}
+
           {onOpenDiceTray && (
             <button
               type="button"
