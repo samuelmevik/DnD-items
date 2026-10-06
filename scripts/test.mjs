@@ -16,6 +16,10 @@ async function runAllTests() {
     promptChipsTest.runPromptChipTests();
     console.log("  ✓ promptChips tests passed");
 
+    const loadoutExportTest = await server.ssrLoadModule("./src/lib/ai/loadoutExport.test.ts");
+    await loadoutExportTest.runLoadoutExportTests();
+    console.log("  ✓ loadoutExport tests passed");
+
     console.log("🎉 All unit tests passed successfully!");
   } finally {
     await server.close();
