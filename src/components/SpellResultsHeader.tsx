@@ -169,17 +169,19 @@ export function SpellResultsHeader({
                   </button>
                 )}
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onOpenListManager();
-                  }}
-                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-foreground hover:bg-accent"
-                >
-                  <Settings className="size-3.5 text-muted-foreground" />
-                  <span>Manage All Lists...</span>
-                </button>
+                {onOpenListManager && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onOpenListManager();
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs font-medium text-foreground hover:bg-accent"
+                  >
+                    <Settings className="size-3.5 text-muted-foreground" />
+                    <span>Manage All Lists...</span>
+                  </button>
+                )}
               </div>
             </div>
           )}

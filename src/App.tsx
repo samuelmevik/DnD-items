@@ -11,7 +11,6 @@ import { highestPrice, Item, items, lowestPrice } from "./data/items";
 import { activeFilterCount, FilterState, filterItems } from "./lib/filters";
 import { useCatalogUrlState, removeSharedParamsFromUrl } from "./lib/urlState";
 import {
-  CustomList,
   SharedListData,
   copyToClipboard,
   generateMarkdownSummary,
@@ -105,7 +104,7 @@ function App() {
   const spellsMap = useMemo(() => new Map(spells.map((s) => [s.id, s])), []);
 
   // Shared List via URL link (e.g. DM shared gear set)
-  const [sharedList, setSharedList] = useState<SharedListData | null>(() => {
+  const [sharedList] = useState<SharedListData | null>(() => {
     if (typeof window === "undefined") return null;
     return parseSharedListFromUrl(window.location.search);
   });
@@ -420,7 +419,7 @@ function App() {
               onSaveToLists={handleSaveSharedList}
               onDismiss={handleDismissShared}
               onCopyShareLink={handleCopySharedLink}
-              onCopyMarkdown={handleCopyMarkdown}
+              onCopyMarkdown={handleCopySharedMarkdown}
               isSaved={isSavedShared}
             />
           )}
