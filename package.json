@@ -10,6 +10,7 @@
     "lint:debug": "eslint . --debug",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
+    "test": "node scripts/test.mjs",
     "fetch:spells": "node scripts/fetch-spells.mjs"
   },
   "dependencies": {
