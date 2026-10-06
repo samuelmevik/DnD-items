@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Check, Scroll } from "lucide-react";
+import { Check, Scroll, Dices } from "lucide-react";
 import { highestPrice, Item, items, lowestPrice } from "./data/items";
 import { activeFilterCount, FilterState, filterItems } from "./lib/filters";
 import {
@@ -790,10 +790,14 @@ function App() {
         <aside
           role="status"
           aria-live="polite"
-          className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-lg border border-border bg-popover px-4 py-2.5 text-xs font-semibold text-popover-foreground shadow-lg animate-in fade-in-0 slide-in-from-bottom-2"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 sm:left-auto sm:right-6 sm:translate-x-0 z-[100] flex max-w-[92vw] items-center gap-2.5 rounded-xl border border-border bg-popover/95 backdrop-blur-md px-4 py-3 text-xs font-semibold text-popover-foreground shadow-2xl animate-in fade-in-0 slide-in-from-bottom-3"
         >
-          <Check className="size-4 text-green-500" />
-          <span>{toastMessage}</span>
+          {toastMessage.startsWith("🎲") ? (
+            <Dices className="size-4 shrink-0 text-amber-500" />
+          ) : (
+            <Check className="size-4 shrink-0 text-green-500" />
+          )}
+          <span className="truncate">{toastMessage}</span>
         </aside>
       )}
     </div>

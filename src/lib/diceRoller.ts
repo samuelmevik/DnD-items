@@ -102,7 +102,7 @@ export function linkifyDice(
           },
           title: `Roll ${matchedText}`,
           className:
-            "inline-flex items-center gap-1 mx-0.5 rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 font-mono text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-500/20 hover:border-amber-500/50 dark:text-amber-300 dark:border-amber-500/40",
+            "inline-flex items-center gap-1 mx-0.5 rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 font-mono text-xs font-semibold text-amber-700 transition-all hover:bg-amber-500/20 hover:border-amber-500/50 dark:text-amber-300 dark:border-amber-500/40 active:scale-95 active:bg-amber-500/30 cursor-pointer select-none",
         },
         React.createElement(Dices, {
           className: "size-3 text-amber-600 dark:text-amber-400",

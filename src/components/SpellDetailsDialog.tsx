@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Star, Share2, Copy, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Star, Share2, Copy, Check, Dices, X } from "lucide-react";
 import { Spell } from "@/data/spells";
 import { levelLabel } from "@/lib/spellFilters";
 import { schoolStyle } from "@/lib/schoolStyles";
@@ -17,7 +17,7 @@ import {
   copyToClipboard,
   generateSingleSpellMarkdown,
 } from "@/lib/customLists";
-import { linkifyDice, DiceRollResult } from "@/lib/diceRoller";
+import { linkifyDice, DiceRollResult, rollDice } from "@/lib/diceRoller";
 
 type SpellDetailsDialogProps = {
   spell: Spell | null;
@@ -51,10 +51,19 @@ export function SpellDetailsDialog({
   onCreateList,
   onRollDice,
   onToast,
-}: SpellDetailsDialogProps) {
   const style = spell ? schoolStyle(spell.school) : null;
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedMarkdown, setCopiedMarkdown] = useState(false);
+  const [lastRoll, setLastRoll] = useState<DiceRollResult | null>(null);
+
+  useEffect(() => {
+    setLastRoll(null);
+  }, [spell]);
+
+  const handleLocalRollDice = (res: DiceRollResult) => {
+    setLastRoll(res);
+    onRollDice?.(res);
+  };
 
   const handleCopyLink = async () => {
     if (!spell) return;
@@ -191,10 +200,57 @@ export function SpellDetailsDialog({
                 </div>
               </dl>
 
+              {/* Interactive In-Dialog Dice Roll Banner */}
+              {lastRoll && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-foreground shadow-sm animate-in fade-in-0 slide-in-from-top-1"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                      <Dices className="size-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 font-semibold leading-tight">
+                        <span className="truncate">{lastRoll.expression}</span>
+                        <span className="text-xs text-muted-foreground">→</span>
+                        <span className="text-base text-amber-600 dark:text-amber-400 font-bold">
+                          {lastRoll.total}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground font-mono truncate">
+                        {lastRoll.breakdown}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = rollDice(lastRoll.expression);
+                        handleLocalRollDice(next);
+                      }}
+                      className="rounded border border-border bg-background px-2 py-1 text-xs font-medium text-foreground transition-colors hover:bg-accent"
+                    >
+                      Reroll
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLastRoll(null)}
+                      aria-label="Dismiss roll"
+                      className="rounded p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2 text-foreground/90">
                 {spell.description.map((desc, i) => (
                   <p key={i}>
-                    {linkifyDice(desc, onRollDice, `spell-desc-${i}`)}
+                    {linkifyDice(desc, handleLocalRollDice, `spell-desc-${i}`)}
                   </p>
                 ))}
               </div>
@@ -206,7 +262,7 @@ export function SpellDetailsDialog({
                   </h4>
                   {spell.higherLevel.map((desc, i) => (
                     <p key={i}>
-                      {linkifyDice(desc, onRollDice, `spell-higher-${i}`)}
+                      {linkifyDice(desc, handleLocalRollDice, `spell-higher-${i}`)}
                     </p>
                   ))}
                 </div>
