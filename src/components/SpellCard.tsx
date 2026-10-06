@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Star, Scale } from "lucide-react";
 import { Spell } from "@/data/spells";
 import { levelLabel } from "@/lib/spellFilters";
 import { schoolStyle, schoolIcon } from "@/lib/schoolStyles";
@@ -10,6 +10,8 @@ type SpellCardProps = {
   isFavorite: boolean;
   onSelect: (spell: Spell) => void;
   onToggleFavorite: (id: number) => void;
+  isCompared?: boolean;
+  onToggleCompare?: (id: number) => void;
 };
 
 export default function SpellCard({
@@ -17,6 +19,8 @@ export default function SpellCard({
   isFavorite,
   onSelect,
   onToggleFavorite,
+  isCompared,
+  onToggleCompare,
 }: SpellCardProps) {
   const style = schoolStyle(spell.school);
   const Icon = schoolIcon(spell.school);
@@ -74,6 +78,25 @@ export default function SpellCard({
           </div>
         </div>
       </button>
+
+      {onToggleCompare && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleCompare(spell.id);
+          }}
+          aria-pressed={isCompared}
+          title={isCompared ? "Remove from comparison" : "Compare spell"}
+          aria-label={isCompared ? "Remove from comparison" : "Compare spell"}
+          className={cn(
+            "absolute right-11 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md bg-background/80 backdrop-blur-xs text-muted-foreground shadow-xs transition-colors hover:bg-accent hover:text-foreground",
+            isCompared && "text-primary bg-primary/15 border border-primary/40",
+          )}
+        >
+          <Scale className="size-4" aria-hidden />
+        </button>
+      )}
 
       <button
         type="button"

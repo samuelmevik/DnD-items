@@ -51,6 +51,15 @@ import { SpellTableView } from "./components/SpellTableView";
 import { SpellResultsHeader } from "./components/SpellResultsHeader";
 import { SpellDetailsDialog } from "./components/SpellDetailsDialog";
 
+import { useRecentHistory } from "./lib/recentHistory";
+import { useCompareState } from "./lib/compareState";
+import { RecentViewsDrawer } from "./components/RecentViewsDrawer";
+import { CompareFloatingBar } from "./components/CompareFloatingBar";
+import { CompareDialog } from "./components/CompareDialog";
+import { QuickDiceTray } from "./components/QuickDiceTray";
+import { RandomLootDialog } from "./components/RandomLootDialog";
+import { KeyboardShortcutsDialog } from "./components/KeyboardShortcutsDialog";
+
 // Bundled background images — Vite resolves these to hashed URLs at build
 // time, so they ship with the site for every visitor. Replace these two
 // files in src/assets/ with your own art (any image format works).
@@ -101,14 +110,18 @@ function App() {
     activeSpellIds,
     setActiveListId,
     createList,
+    duplicateList,
     renameList,
     deleteList,
+    clearList,
     toggleItemInActiveList,
     toggleSpellInActiveList,
     isItemInActiveList,
     isSpellInActiveList,
     toggleItemInList,
     toggleSpellInList,
+    removeItemFromList,
+    removeSpellFromList,
     isItemInList,
     isSpellInList,
     setItemQuantity,
@@ -116,6 +129,23 @@ function App() {
     exportBackupLists,
     importBackupLists,
   } = useCustomLists();
+
+  // Recently viewed history
+  const { recentViews, addRecent, clearRecent } = useRecentHistory();
+
+  // Side-by-side comparison state
+  const {
+    comparedItemIds,
+    comparedSpellIds,
+    toggleItemCompare,
+    toggleSpellCompare,
+    isItemCompared,
+    isSpellCompared,
+    clearItemCompare,
+    clearSpellCompare,
+    compareModalOpen,
+    setCompareModalOpen,
+  } = useCompareState();
 
   // Fast item and spell lookups
   const itemsMap = useMemo(() => new Map(items.map((i) => [i.id, i])), []);
@@ -129,6 +159,10 @@ function App() {
   const [sharedListDismissed, setSharedListDismissed] = useState(false);
   const [isSavedShared, setIsSavedShared] = useState(false);
   const [listManagerOpen, setListManagerOpen] = useState(false);
+  const [diceTrayOpen, setDiceTrayOpen] = useState(false);
+  const [randomLootOpen, setRandomLootOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {
@@ -211,23 +245,29 @@ function App() {
 
   const handleSelectItem = useCallback((item: Item | null) => {
     setSelectedItem(item);
+    if (item) {
+      addRecent("item", item.id);
+    }
     setDeepLinkedParam(
       "item",
       item
         ? item.slug || item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")
         : null,
     );
-  }, []);
+  }, [addRecent]);
 
   const handleSelectSpell = useCallback((spell: Spell | null) => {
     setSelectedSpell(spell);
+    if (spell) {
+      addRecent("spell", spell.id);
+    }
     setDeepLinkedParam(
       "spell",
       spell
         ? spell.index || spell.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")
         : null,
     );
-  }, []);
+  }, [addRecent]);
 
   // Deep linking initial load
   useEffect(() => {
@@ -280,11 +320,12 @@ function App() {
   const handleSelectSpellFromItem = useCallback((spell: Spell) => {
     setSelectedItem(null);
     setSelectedSpell(spell);
+    addRecent("spell", spell.id);
     setDeepLinkedParam(
       "spell",
       spell.index || spell.name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
     );
-  }, []);
+  }, [addRecent]);
 
   const handleTabChange = useCallback(
     (tab: CatalogTab) => {
@@ -439,19 +480,45 @@ function App() {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== "/") return;
       const target = e.target as HTMLElement | null;
       const tag = target?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) {
         return;
       }
-      e.preventDefault();
-      searchInputRef.current?.focus();
-      searchInputRef.current?.select();
+
+      if (e.key === "/") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        searchInputRef.current?.select();
+      } else if (e.key === "1") {
+        e.preventDefault();
+        handleTabChange("items");
+      } else if (e.key === "2") {
+        e.preventDefault();
+        handleTabChange("spells");
+      } else if (e.key === "d" || e.key === "D") {
+        e.preventDefault();
+        setDiceTrayOpen((prev) => !prev);
+      } else if (e.key === "r" || e.key === "R") {
+        e.preventDefault();
+        setRandomLootOpen((prev) => !prev);
+      } else if (e.key === "l" || e.key === "L") {
+        e.preventDefault();
+        setListManagerOpen((prev) => !prev);
+      } else if (e.key === "h" || e.key === "H") {
+        e.preventDefault();
+        setHistoryOpen((prev) => !prev);
+      } else if (e.key === "c" || e.key === "C") {
+        e.preventDefault();
+        setCompareModalOpen(true);
+      } else if (e.key === "?") {
+        e.preventDefault();
+        setShortcutsOpen((prev) => !prev);
+      }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [handleTabChange, setCompareModalOpen]);
 
   const itemFilterCount = activeFilterCount(state);
   const spellFilterCount = activeSpellFilterCount(spellState);
@@ -519,11 +586,16 @@ function App() {
         activeFilterCount={filterCount}
         activeTab={activeTab}
         onTabChange={handleTabChange}
+        onOpenDiceTray={() => setDiceTrayOpen((prev) => !prev)}
+        onOpenRandomLoot={() => setRandomLootOpen(true)}
+        onOpenHistory={() => setHistoryOpen(true)}
+        recentCount={recentViews.length}
+        onOpenShortcuts={() => setShortcutsOpen(true)}
         rightSlot={
           <button
             type="button"
             onClick={() => setListManagerOpen(true)}
-            title="Manage favorite lists & gear sets"
+            title="Manage favorite lists & gear sets (L)"
             className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
           >
             <Scroll className="size-3.5 text-muted-foreground" />
@@ -535,8 +607,8 @@ function App() {
         }
         searchPlaceholder={
           activeTab === "items"
-            ? "Search items by name or description…"
-            : "Search spells by name or description…"
+            ? "Search items by name or description… (/)"
+            : "Search spells by name or description… (/)"
         }
       />
 
@@ -610,6 +682,7 @@ function App() {
                     ? activeListAttunementCount
                     : undefined
                 }
+                onOpenRandomLoot={() => setRandomLootOpen(true)}
               />
 
               <ActiveFilterChips
@@ -635,6 +708,8 @@ function App() {
                   onSelect={handleSelectItem}
                   onToggleFavorite={toggleItemInActiveList}
                   resetKey={resetKey}
+                  isCompared={isItemCompared}
+                  onToggleCompare={toggleItemCompare}
                 />
               ) : (
                 <ItemTableView
@@ -647,6 +722,8 @@ function App() {
                   onSelect={handleSelectItem}
                   onToggleFavorite={toggleItemInActiveList}
                   resetKey={resetKey}
+                  isCompared={isItemCompared}
+                  onToggleCompare={toggleItemCompare}
                 />
               )}
             </>
@@ -674,6 +751,7 @@ function App() {
                 onShareActiveList={handleShareActiveList}
                 viewMode={viewMode}
                 onViewModeChange={handleViewModeChange}
+                onOpenRandomLoot={() => setRandomLootOpen(true)}
               />
 
               <ActiveFilterChips
@@ -698,6 +776,8 @@ function App() {
                   onSelect={handleSelectSpell}
                   onToggleFavorite={toggleSpellInActiveList}
                   resetKey={spellResetKey}
+                  isCompared={isSpellCompared}
+                  onToggleCompare={toggleSpellCompare}
                 />
               ) : (
                 <SpellTableView
@@ -710,6 +790,8 @@ function App() {
                   onSelect={handleSelectSpell}
                   onToggleFavorite={toggleSpellInActiveList}
                   resetKey={spellResetKey}
+                  isCompared={isSpellCompared}
+                  onToggleCompare={toggleSpellCompare}
                 />
               )}
             </>
@@ -717,7 +799,7 @@ function App() {
         </div>
       </main>
 
-      {/* Item Details Dialog with List management */}
+      {/* Item Details Dialog with List management & comparison */}
       <ItemDetailsDialog
         item={selectedItem}
         onOpenChange={(open) => !open && handleSelectItem(null)}
@@ -731,6 +813,10 @@ function App() {
         onToggleFavorite={() => {
           if (selectedItem) toggleItemInActiveList(selectedItem.id);
         }}
+        isCompared={selectedItem ? isItemCompared(selectedItem.id) : false}
+        onToggleCompare={() => {
+          if (selectedItem) toggleItemCompare(selectedItem.id);
+        }}
         spells={spells}
         onSelectSpell={handleSelectSpellFromItem}
         lists={lists}
@@ -743,7 +829,7 @@ function App() {
         onToast={showToast}
       />
 
-      {/* Spell Details Dialog with List management */}
+      {/* Spell Details Dialog with List management & comparison */}
       <SpellDetailsDialog
         spell={selectedSpell}
         onOpenChange={(open) => !open && handleSelectSpell(null)}
@@ -756,6 +842,10 @@ function App() {
         }
         onToggleFavorite={() => {
           if (selectedSpell) toggleSpellInActiveList(selectedSpell.id);
+        }}
+        isCompared={selectedSpell ? isSpellCompared(selectedSpell.id) : false}
+        onToggleCompare={() => {
+          if (selectedSpell) toggleSpellCompare(selectedSpell.id);
         }}
         lists={lists}
         isItemInList={isItemInList}
@@ -775,14 +865,93 @@ function App() {
         activeListId={activeListId}
         onSelectActiveList={setActiveListId}
         onCreateList={createList}
+        onDuplicateList={duplicateList}
         onRenameList={renameList}
         onDeleteList={deleteList}
+        onClearList={clearList}
+        onRemoveItemFromList={removeItemFromList}
+        onRemoveSpellFromList={removeSpellFromList}
         itemsMap={itemsMap}
         spellsMap={spellsMap}
         activeTab={activeTab}
         onSetItemQuantity={setItemQuantity}
         onExportBackup={exportBackupLists}
         onImportBackup={importBackupLists}
+      />
+
+      {/* Floating Compare Tray */}
+      <CompareFloatingBar
+        activeTab={activeTab}
+        comparedItemIds={comparedItemIds}
+        comparedSpellIds={comparedSpellIds}
+        itemsMap={itemsMap}
+        spellsMap={spellsMap}
+        onRemoveItem={toggleItemCompare}
+        onRemoveSpell={toggleSpellCompare}
+        onClear={activeTab === "items" ? clearItemCompare : clearSpellCompare}
+        onOpenCompare={() => setCompareModalOpen(true)}
+      />
+
+      {/* Side-by-Side Compare Dialog */}
+      <CompareDialog
+        open={compareModalOpen}
+        onOpenChange={setCompareModalOpen}
+        activeTab={activeTab}
+        comparedItemIds={comparedItemIds}
+        comparedSpellIds={comparedSpellIds}
+        itemsMap={itemsMap}
+        spellsMap={spellsMap}
+        onRemoveItem={toggleItemCompare}
+        onRemoveSpell={toggleSpellCompare}
+        onSelectItem={handleSelectItem}
+        onSelectSpell={handleSelectSpell}
+        isItemFavorite={isItemInActiveList}
+        isSpellFavorite={isSpellInActiveList}
+        onToggleItemFavorite={toggleItemInActiveList}
+        onToggleSpellFavorite={toggleSpellInActiveList}
+        onRollDice={handleRollDice}
+      />
+
+      {/* Quick Interactive Dice Roller */}
+      <QuickDiceTray
+        open={diceTrayOpen}
+        onOpenChange={setDiceTrayOpen}
+        onRollDice={handleRollDice}
+      />
+
+      {/* Random Loot & Spell Roller */}
+      <RandomLootDialog
+        open={randomLootOpen}
+        onOpenChange={setRandomLootOpen}
+        activeTab={activeTab}
+        filteredItems={filteredItems}
+        filteredSpells={filteredSpells}
+        allItems={items}
+        allSpells={spells}
+        onSelectItem={handleSelectItem}
+        onSelectSpell={handleSelectSpell}
+        onToggleItemFavorite={toggleItemInActiveList}
+        onToggleSpellFavorite={toggleSpellInActiveList}
+        isItemFavorite={isItemInActiveList}
+        isSpellFavorite={isSpellInActiveList}
+      />
+
+      {/* Recently Viewed History Drawer */}
+      <RecentViewsDrawer
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        recentViews={recentViews}
+        itemsMap={itemsMap}
+        spellsMap={spellsMap}
+        onSelectItem={handleSelectItem}
+        onSelectSpell={handleSelectSpell}
+        onClearRecent={clearRecent}
+      />
+
+      {/* Keyboard Shortcuts Dialog */}
+      <KeyboardShortcutsDialog
+        open={shortcutsOpen}
+        onOpenChange={setShortcutsOpen}
       />
 
       {/* Toast Notification */}

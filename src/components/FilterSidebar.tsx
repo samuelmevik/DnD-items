@@ -86,10 +86,11 @@ const CATEGORY_ICONS: Record<string, IconComponent> = {
 };
 
 const PRICE_PRESETS: { label: string; range: [number, number | null] }[] = [
-  { label: "< 100", range: [0, 99] },
-  { label: "100 – 1k", range: [100, 1000] },
-  { label: "1k – 10k", range: [1000, 10000] },
-  { label: "10k+", range: [10000, null] },
+  { label: "< 100", range: [0, 100] },
+  { label: "100 – 500", range: [100, 500] },
+  { label: "500 – 5k", range: [500, 5000] },
+  { label: "5k – 50k", range: [5000, 50000] },
+  { label: "50k+", range: [50000, null] },
 ];
 
 const formatPrice = (n: number) => `${n.toLocaleString()} gp`;

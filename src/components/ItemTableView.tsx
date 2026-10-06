@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Star } from "lucide-react";
+import { Star, Scale } from "lucide-react";
 import type { Item } from "@/data/items";
 import { isRarity, itemRequiresAttunement } from "@/lib/filters";
 import { rarityRingClass } from "@/lib/rarityStyles";
@@ -12,6 +12,8 @@ type ItemTableViewProps = {
   onSelect: (item: Item) => void;
   onToggleFavorite: (id: number) => void;
   resetKey: string;
+  isCompared?: (id: number) => boolean;
+  onToggleCompare?: (id: number) => void;
 };
 
 const PAGE_SIZE = 100;
@@ -22,6 +24,8 @@ export function ItemTableView({
   onSelect,
   onToggleFavorite,
   resetKey,
+  isCompared,
+  onToggleCompare,
 }: ItemTableViewProps) {
   const [pageCount, setPageCount] = useState(1);
 
@@ -44,7 +48,12 @@ export function ItemTableView({
               <th className="py-2.5 px-3">Type</th>
               <th className="py-2.5 px-3">Attunement</th>
               <th className="py-2.5 px-3 text-right">Price</th>
-              <th className="py-2.5 pr-3 pl-2 w-10 text-center">Fav</th>
+              {onToggleCompare && (
+                <th className="py-2.5 px-1 w-8 text-center" title="Compare">
+                  Cmp
+                </th>
+              )}
+              <th className="py-2.5 pr-3 pl-1 w-8 text-center">Fav</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
@@ -107,7 +116,31 @@ export function ItemTableView({
                       </span>
                     )}
                   </td>
-                  <td className="py-2 pr-3 pl-2 text-center">
+                  {onToggleCompare && (
+                    <td
+                      className="py-2 px-1 text-center"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onToggleCompare(item.id)}
+                        title={
+                          isCompared?.(item.id)
+                            ? "Remove from comparison"
+                            : "Compare"
+                        }
+                        aria-label="Compare item"
+                        className={cn(
+                          "rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground",
+                          isCompared?.(item.id) &&
+                            "text-primary bg-primary/15",
+                        )}
+                      >
+                        <Scale className="size-3.5" />
+                      </button>
+                    </td>
+                  )}
+                  <td className="py-2 pr-3 pl-1 text-center">
                     <button
                       type="button"
                       onClick={(e) => {

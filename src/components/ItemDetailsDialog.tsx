@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Star, Share2, Copy, Check, Dices, X } from "lucide-react";
+import { Star, Share2, Copy, Check, Dices, X, Scale } from "lucide-react";
 import { Item } from "@/data/items";
 import { Spell } from "@/data/spells";
 import {
@@ -27,6 +27,8 @@ type ItemDetailsDialogProps = {
   onOpenChange: (open: boolean) => void;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  isCompared?: boolean;
+  onToggleCompare?: () => void;
   spells: Spell[];
   onSelectSpell: (spell: Spell) => void;
   lists?: CustomList[];
@@ -207,6 +209,8 @@ export function ItemDetailsDialog({
   onOpenChange,
   isFavorite,
   onToggleFavorite,
+  isCompared,
+  onToggleCompare,
   spells,
   onSelectSpell,
   lists,
@@ -324,6 +328,24 @@ export function ItemDetailsDialog({
                       onToggleSpellInList={onToggleSpellInList ?? (() => {})}
                       onCreateList={onCreateList}
                     />
+                  )}
+                  {onToggleCompare && (
+                    <button
+                      type="button"
+                      onClick={onToggleCompare}
+                      title={
+                        isCompared
+                          ? "Remove from comparison"
+                          : "Add to comparison"
+                      }
+                      aria-label="Compare item"
+                      className={cn(
+                        "rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
+                        isCompared && "text-primary bg-primary/10",
+                      )}
+                    >
+                      <Scale className="size-5" />
+                    </button>
                   )}
                   <button
                     type="button"

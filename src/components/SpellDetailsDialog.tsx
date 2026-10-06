@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Star, Share2, Copy, Check, Dices, X } from "lucide-react";
+import { Star, Share2, Copy, Check, Dices, X, Scale } from "lucide-react";
 import { Spell } from "@/data/spells";
 import { levelLabel } from "@/lib/spellFilters";
 import { schoolStyle } from "@/lib/schoolStyles";
@@ -24,6 +24,8 @@ type SpellDetailsDialogProps = {
   onOpenChange: (open: boolean) => void;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  isCompared?: boolean;
+  onToggleCompare?: () => void;
   lists?: CustomList[];
   isItemInList?: (listId: string, itemId: number) => boolean;
   isSpellInList?: (listId: string, spellId: number) => boolean;
@@ -43,6 +45,8 @@ export function SpellDetailsDialog({
   onOpenChange,
   isFavorite,
   onToggleFavorite,
+  isCompared,
+  onToggleCompare,
   lists,
   isItemInList,
   isSpellInList,
@@ -142,6 +146,24 @@ export function SpellDetailsDialog({
                       onToggleSpellInList={onToggleSpellInList}
                       onCreateList={onCreateList}
                     />
+                  )}
+                  {onToggleCompare && (
+                    <button
+                      type="button"
+                      onClick={onToggleCompare}
+                      title={
+                        isCompared
+                          ? "Remove from comparison"
+                          : "Add to comparison"
+                      }
+                      aria-label="Compare spell"
+                      className={cn(
+                        "rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground",
+                        isCompared && "text-primary bg-primary/10",
+                      )}
+                    >
+                      <Scale className="size-5" />
+                    </button>
                   )}
                   <button
                     type="button"

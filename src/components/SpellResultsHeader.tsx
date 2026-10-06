@@ -8,6 +8,7 @@ import {
   Check,
   LayoutGrid,
   List,
+  Dices,
 } from "lucide-react";
 import { SpellSortKey } from "@/lib/spellFilters";
 import { SpellSortMenu } from "./SpellSortMenu";
@@ -32,6 +33,7 @@ type SpellResultsHeaderProps = {
   onShareActiveList?: () => void;
   viewMode?: "grid" | "table";
   onViewModeChange?: (mode: "grid" | "table") => void;
+  onOpenRandomLoot?: () => void;
 };
 
 export function SpellResultsHeader({
@@ -52,6 +54,7 @@ export function SpellResultsHeader({
   onShareActiveList,
   viewMode = "grid",
   onViewModeChange,
+  onOpenRandomLoot,
 }: SpellResultsHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -201,6 +204,19 @@ export function SpellResultsHeader({
           >
             <X className="size-3.5" aria-hidden />
             Clear filters
+          </button>
+        )}
+
+        {onOpenRandomLoot && (
+          <button
+            type="button"
+            onClick={onOpenRandomLoot}
+            title="Roll random spell from results"
+            aria-label="Roll random spell"
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-accent hover:border-amber-500/40 shadow-2xs"
+          >
+            <Dices className="size-3.5 text-amber-500" />
+            <span className="hidden sm:inline">Random</span>
           </button>
         )}
 

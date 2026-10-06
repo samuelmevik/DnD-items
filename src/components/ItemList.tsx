@@ -8,6 +8,8 @@ type ItemListProps = {
   onSelect: (item: Item) => void;
   onToggleFavorite: (id: number) => void;
   resetKey: string;
+  isCompared?: (id: number) => boolean;
+  onToggleCompare?: (id: number) => void;
 };
 
 const PAGE_SIZE = 100;
@@ -18,6 +20,8 @@ export default function ItemList({
   onSelect,
   onToggleFavorite,
   resetKey,
+  isCompared,
+  onToggleCompare,
 }: ItemListProps) {
   const [pageCount, setPageCount] = useState(1);
 
@@ -38,6 +42,8 @@ export default function ItemList({
             isFavorite={isFavorite(item.id)}
             onSelect={onSelect}
             onToggleFavorite={onToggleFavorite}
+            isCompared={isCompared?.(item.id)}
+            onToggleCompare={onToggleCompare}
           />
         ))}
       </div>

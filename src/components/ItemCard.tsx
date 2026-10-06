@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Star, Scale } from "lucide-react";
 import { Item } from "@/data/items";
 import { isRarity, itemRequiresAttunement } from "@/lib/filters";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,8 @@ type ItemCardProps = {
   isFavorite: boolean;
   onSelect: (item: Item) => void;
   onToggleFavorite: (id: number) => void;
+  isCompared?: boolean;
+  onToggleCompare?: (id: number) => void;
 };
 
 const formatPrice = (n: number) => `${n.toLocaleString()} gp`;
@@ -20,6 +22,8 @@ export default function ItemCard({
   isFavorite,
   onSelect,
   onToggleFavorite,
+  isCompared,
+  onToggleCompare,
 }: ItemCardProps) {
   const rarity = item.tags.find(isRarity);
   const ringClass = rarityRingClass(rarity);
@@ -73,6 +77,25 @@ export default function ItemCard({
           </div>
         </div>
       </button>
+
+      {onToggleCompare && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleCompare(item.id);
+          }}
+          aria-pressed={isCompared}
+          title={isCompared ? "Remove from comparison" : "Compare item"}
+          aria-label={isCompared ? "Remove from comparison" : "Compare item"}
+          className={cn(
+            "absolute right-11 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md bg-background/80 backdrop-blur-xs text-muted-foreground shadow-xs transition-colors hover:bg-accent hover:text-foreground",
+            isCompared && "text-primary bg-primary/15 border border-primary/40",
+          )}
+        >
+          <Scale className="size-4" aria-hidden />
+        </button>
+      )}
 
       <button
         type="button"

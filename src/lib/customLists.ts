@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Item } from "@/data/items";
 import type { Spell } from "@/data/spells";
-import { itemRequiresAttunement } from "./filters";
+import { itemRequiresAttunement, isRarity } from "./filters";
 
 export type CustomList = {
   id: string;
@@ -340,6 +340,47 @@ export function generateMarkdownSummary(
   }
 
   return lines.join("\n");
+}
+
+export function generateCsvSummary(
+  list: { name: string; itemIds: number[]; spellIds: number[]; quantities?: Record<number, number> },
+  itemsMap: Map<number, Item>,
+  spellsMap: Map<number, Spell>,
+): string {
+  const rows: string[][] = [
+    ["Type", "Name", "Details", "Quantity", "Price (gp)", "Total (gp)"],
+  ];
+  for (const id of list.itemIds) {
+    const item = itemsMap.get(id);
+    if (item) {
+      const qty = list.quantities?.[id] ?? 1;
+      const rarity = item.tags.find(isRarity) || "";
+      const attune = itemRequiresAttunement(item) ? "Requires Attunement" : "No Attunement";
+      rows.push([
+        "Item",
+        `"${item.name.replace(/"/g, '""')}"`,
+        `"${[rarity, attune].filter(Boolean).join(" · ")}"`,
+        String(qty),
+        String(item.price),
+        String(item.price * qty),
+      ]);
+    }
+  }
+  for (const id of list.spellIds) {
+    const spell = spellsMap.get(id);
+    if (spell) {
+      const levelStr = spell.level === 0 ? "Cantrip" : `Level ${spell.level}`;
+      rows.push([
+        "Spell",
+        `"${spell.name.replace(/"/g, '""')}"`,
+        `"${[levelStr, spell.school, spell.castingTime].filter(Boolean).join(" · ")}"`,
+        "1",
+        "0",
+        "0",
+      ]);
+    }
+  }
+  return rows.map((r) => r.join(",")).join("\n");
 }
 
 export function generateSingleItemMarkdown(
@@ -713,6 +754,71 @@ export function useCustomLists() {
     [],
   );
 
+  const duplicateList = useCallback(
+    (id: string): CustomList | null => {
+      const source = lists.find((l) => l.id === id);
+      if (!source) return null;
+      const newId = `list_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      const clone: CustomList = {
+        id: newId,
+        name: `${source.name} (Copy)`,
+        itemIds: [...source.itemIds],
+        spellIds: [...source.spellIds],
+        quantities: { ...(source.quantities || {}) },
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      setLists((prev) => [...prev, clone]);
+      setActiveListIdRaw(newId);
+      return clone;
+    },
+    [lists],
+  );
+
+  const removeItemFromList = useCallback((listId: string, itemId: number) => {
+    setLists((prev) =>
+      prev.map((l) => {
+        if (l.id !== listId) return l;
+        const nextQuantities = { ...(l.quantities || {}) };
+        delete nextQuantities[itemId];
+        return {
+          ...l,
+          itemIds: l.itemIds.filter((id) => id !== itemId),
+          quantities: nextQuantities,
+          updatedAt: Date.now(),
+        };
+      }),
+    );
+  }, []);
+
+  const removeSpellFromList = useCallback((listId: string, spellId: number) => {
+    setLists((prev) =>
+      prev.map((l) => {
+        if (l.id !== listId) return l;
+        return {
+          ...l,
+          spellIds: l.spellIds.filter((id) => id !== spellId),
+          updatedAt: Date.now(),
+        };
+      }),
+    );
+  }, []);
+
+  const clearList = useCallback((listId: string) => {
+    setLists((prev) =>
+      prev.map((l) => {
+        if (l.id !== listId) return l;
+        return {
+          ...l,
+          itemIds: [],
+          spellIds: [],
+          quantities: {},
+          updatedAt: Date.now(),
+        };
+      }),
+    );
+  }, []);
+
   return {
     lists,
     activeList,
@@ -721,10 +827,14 @@ export function useCustomLists() {
     activeSpellIds,
     setActiveListId,
     createList,
+    duplicateList,
     renameList,
     deleteList,
+    clearList,
     toggleItemInList,
     toggleSpellInList,
+    removeItemFromList,
+    removeSpellFromList,
     toggleItemInActiveList,
     toggleSpellInActiveList,
     setItemQuantity,

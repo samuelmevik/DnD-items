@@ -8,6 +8,7 @@ import {
   Check,
   LayoutGrid,
   List,
+  Dices,
 } from "lucide-react";
 import { SortKey } from "@/lib/filters";
 import { SortMenu } from "./SortMenu";
@@ -34,6 +35,7 @@ type ResultsHeaderProps = {
   onViewModeChange?: (mode: "grid" | "table") => void;
   totalGold?: number;
   attunementCount?: number;
+  onOpenRandomLoot?: () => void;
 };
 
 export function ResultsHeader({
@@ -56,6 +58,7 @@ export function ResultsHeader({
   onViewModeChange,
   totalGold,
   attunementCount,
+  onOpenRandomLoot,
 }: ResultsHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -224,6 +227,19 @@ export function ResultsHeader({
           >
             <X className="size-3.5" aria-hidden />
             Clear filters
+          </button>
+        )}
+
+        {onOpenRandomLoot && (
+          <button
+            type="button"
+            onClick={onOpenRandomLoot}
+            title="Roll random item from results"
+            aria-label="Roll random item"
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-accent hover:border-amber-500/40 shadow-2xs"
+          >
+            <Dices className="size-3.5 text-amber-500" />
+            <span className="hidden sm:inline">Random</span>
           </button>
         )}
 

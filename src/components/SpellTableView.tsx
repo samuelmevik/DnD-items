@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Star } from "lucide-react";
+import { Star, Scale } from "lucide-react";
 import type { Spell } from "@/data/spells";
 import { levelLabel } from "@/lib/spellFilters";
 import { schoolStyle } from "@/lib/schoolStyles";
@@ -11,6 +11,8 @@ type SpellTableViewProps = {
   onSelect: (spell: Spell) => void;
   onToggleFavorite: (id: number) => void;
   resetKey: string;
+  isCompared?: (id: number) => boolean;
+  onToggleCompare?: (id: number) => void;
 };
 
 const PAGE_SIZE = 100;
@@ -21,6 +23,8 @@ export function SpellTableView({
   onSelect,
   onToggleFavorite,
   resetKey,
+  isCompared,
+  onToggleCompare,
 }: SpellTableViewProps) {
   const [pageCount, setPageCount] = useState(1);
 
@@ -44,7 +48,12 @@ export function SpellTableView({
               <th className="py-2.5 px-3">Duration</th>
               <th className="py-2.5 px-3">Properties</th>
               <th className="py-2.5 px-3">Classes</th>
-              <th className="py-2.5 pr-3 pl-2 w-10 text-center">Fav</th>
+              {onToggleCompare && (
+                <th className="py-2.5 px-1 w-8 text-center" title="Compare">
+                  Cmp
+                </th>
+              )}
+              <th className="py-2.5 pr-3 pl-1 w-8 text-center">Fav</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/60">
@@ -104,7 +113,31 @@ export function SpellTableView({
                       {spell.classes.join(", ")}
                     </span>
                   </td>
-                  <td className="py-2.5 pr-3 pl-2 text-center">
+                  {onToggleCompare && (
+                    <td
+                      className="py-2.5 px-1 text-center"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onToggleCompare(spell.id)}
+                        title={
+                          isCompared?.(spell.id)
+                            ? "Remove from comparison"
+                            : "Compare"
+                        }
+                        aria-label="Compare spell"
+                        className={cn(
+                          "rounded p-1 text-muted-foreground hover:bg-accent hover:text-foreground",
+                          isCompared?.(spell.id) &&
+                            "text-primary bg-primary/15",
+                        )}
+                      >
+                        <Scale className="size-3.5" />
+                      </button>
+                    </td>
+                  )}
+                  <td className="py-2.5 pr-3 pl-1 text-center">
                     <button
                       type="button"
                       onClick={(e) => {
