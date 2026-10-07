@@ -38,6 +38,7 @@ type FilterSidebarProps = {
   priceBounds: [number, number];
   mobileOpen: boolean;
   onMobileOpenChange: (open: boolean) => void;
+  onAskAiFilter?: () => void;
 };
 
 const RARITY_PILL_ACTIVE: Record<string, string> = {
@@ -447,6 +448,7 @@ export default function FilterSidebar({
   priceBounds,
   mobileOpen,
   onMobileOpenChange,
+  onAskAiFilter,
 }: FilterSidebarProps) {
   const inner = (
     <FilterContent
@@ -461,14 +463,42 @@ export default function FilterSidebar({
   return (
     <>
       <aside className="hidden h-fit w-64 shrink-0 rounded-xl border border-border bg-card p-4 shadow-sm md:block">
-        <h2 className="mb-4 text-base font-semibold">Filters</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-base font-semibold">Filters</h2>
+          {onAskAiFilter && (
+            <button
+              type="button"
+              onClick={onAskAiFilter}
+              className="inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-500/20 hover:border-amber-500/50 dark:text-amber-300 shadow-2xs active:scale-95"
+              title="Ask AI to propose compendium filters"
+            >
+              <Sparkles className="size-3 text-amber-500" />
+              <span>Ask AI</span>
+            </button>
+          )}
+        </div>
         {inner}
       </aside>
 
       <Dialog open={mobileOpen} onOpenChange={onMobileOpenChange}>
         <DialogContent className="left-0 top-0 h-screen max-w-xs translate-x-0 translate-y-0 overflow-y-auto rounded-none data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:rounded-none md:hidden">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold">Filters</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold">Filters</h2>
+              {onAskAiFilter && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onMobileOpenChange(false);
+                    onAskAiFilter();
+                  }}
+                  className="inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300"
+                >
+                  <Sparkles className="size-3 text-amber-500" />
+                  <span>Ask AI</span>
+                </button>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => onMobileOpenChange(false)}

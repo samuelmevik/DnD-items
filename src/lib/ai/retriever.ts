@@ -166,6 +166,12 @@ export function buildSystemPrompt(userQuery: string): string {
     ? `\nHIGH PRIORITY: The user wants to save a list/favorites. You MUST end your response with:\n[CREATE_LIST: {"name": "Recommended List Title", "itemIds": [ids...], "spellIds": [ids...]}]`
     : `\nIf recommending a specific list or pack, end your response with:\n[CREATE_LIST: {"name": "List Title", "itemIds": [ids...], "spellIds": [ids...]}]`;
 
+  const filterDirective = `\n4. STRUCTURED COMPENDIUM FILTERS:
+When recommending, searching, or categorizing items or spells, propose structured filters so the user can 1-click apply them to the compendium. Format as:
+- For items: [APPLY_FILTERS: {"targetTab": "items", "title": "Short Descriptive Title", "rarities": ["Rare"], "categories": ["Weapon"], "attunement": "requires"|"none"|"all"}]
+- For spells: [APPLY_FILTERS: {"targetTab": "spells", "title": "Short Descriptive Title", "classes": ["Wizard"], "schools": ["Evocation"], "levels": [1, 2]}]
+You may output BOTH [APPLY_FILTERS: {...}] and [CREATE_LIST: {...}] if recommending a tailored set.`;
+
   return `You are JustDnD, a helpful and knowledgeable assistant for D&D 5e items and spells.
 
 DATABASE CONTEXT:
@@ -174,6 +180,7 @@ RULES:
 1. When mentioning an item, format it as: [Item Name](item:slug) (e.g. [Flame Tongue](item:flame-tongue)).
 2. When mentioning a spell, format it as: [Spell Name](spell:index) (e.g. [Fireball](spell:fireball)).
 3. Rely on the database context above.
+${filterDirective}
 ${listDirective}`;
 }
 

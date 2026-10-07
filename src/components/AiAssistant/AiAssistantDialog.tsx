@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Item } from "@/data/items";
 import { Spell } from "@/data/spells";
-import { AVAILABLE_MODELS } from "@/lib/ai/types";
+import { AVAILABLE_MODELS, ParsedFilterAction } from "@/lib/ai/types";
 import { useAiAssistant } from "@/lib/ai/useAiAssistant";
 import {
   getIntelligentPromptChips,
@@ -35,6 +35,7 @@ interface AiAssistantDialogProps {
   onSelectItem: (item: Item) => void;
   onSelectSpell: (spell: Spell) => void;
   onCreateList: (name: string, itemIds: number[], spellIds: number[]) => void;
+  onApplyFilters?: (action: ParsedFilterAction) => void;
   onToast: (msg: string) => void;
   initialPrompt?: string | null;
   onClearInitialPrompt?: () => void;
@@ -53,6 +54,7 @@ export const AiAssistantDialog: React.FC<AiAssistantDialogProps> = ({
   onSelectItem,
   onSelectSpell,
   onCreateList,
+  onApplyFilters,
   onToast,
   initialPrompt,
   onClearInitialPrompt,
@@ -425,9 +427,11 @@ export const AiAssistantDialog: React.FC<AiAssistantDialogProps> = ({
                               <AiMessageContent
                                 content={msg.content}
                                 actionList={msg.actionList}
+                                actionFilter={msg.actionFilter}
                                 onSelectItem={onSelectItem}
                                 onSelectSpell={onSelectSpell}
                                 onCreateList={handleCreateListWrapper}
+                                onApplyFilters={onApplyFilters}
                                 onToast={onToast}
                               />
                             ) : msg.isStreaming ? (

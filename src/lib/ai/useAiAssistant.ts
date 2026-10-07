@@ -336,6 +336,7 @@ export function useAiAssistant() {
                     ...msg,
                     content: parsed.cleanedText,
                     actionList: parsed.action,
+                    actionFilter: parsed.filterAction,
                     isStreaming: true,
                   }
                 : msg,
@@ -352,6 +353,7 @@ export function useAiAssistant() {
                   ...msg,
                   content: finalParsed.cleanedText || accumulatedContent,
                   actionList: finalParsed.action,
+                  actionFilter: finalParsed.filterAction,
                   isStreaming: false,
                 }
               : msg,

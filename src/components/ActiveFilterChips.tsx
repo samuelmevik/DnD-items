@@ -1,4 +1,4 @@
-import { X, RotateCcw } from "lucide-react";
+import { X, RotateCcw, Sparkles } from "lucide-react";
 import type { FilterState } from "@/lib/filters";
 import type { SpellFilterState } from "@/lib/spellFilters";
 import { levelLabel } from "@/lib/spellFilters";
@@ -13,6 +13,7 @@ type ActiveFilterChipsProps = {
   onClearAll: () => void;
   onRevert?: () => void;
   canRevert?: boolean;
+  onAskAiFilter?: () => void;
 };
 
 export function ActiveFilterChips({
@@ -25,6 +26,7 @@ export function ActiveFilterChips({
   onClearAll,
   onRevert,
   canRevert,
+  onAskAiFilter,
 }: ActiveFilterChipsProps) {
   if (tab === "items" && itemState && onItemChange) {
     const chips: { key: string; label: string; onRemove: () => void }[] = [];
@@ -124,6 +126,17 @@ export function ActiveFilterChips({
           >
             <RotateCcw className="size-3" />
             <span>Revert Smart Filter</span>
+          </button>
+        )}
+        {onAskAiFilter && (
+          <button
+            type="button"
+            onClick={onAskAiFilter}
+            className="inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 transition-colors shadow-2xs active:scale-95"
+            title="Ask AI to refine or suggest filters"
+          >
+            <Sparkles className="size-3 text-amber-500" />
+            <span>Refine with AI</span>
           </button>
         )}
       </div>
@@ -243,6 +256,17 @@ export function ActiveFilterChips({
           >
             <RotateCcw className="size-3" />
             <span>Revert Smart Filter</span>
+          </button>
+        )}
+        {onAskAiFilter && (
+          <button
+            type="button"
+            onClick={onAskAiFilter}
+            className="inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 transition-colors shadow-2xs active:scale-95"
+            title="Ask AI to refine or suggest filters"
+          >
+            <Sparkles className="size-3 text-amber-500" />
+            <span>Refine with AI</span>
           </button>
         )}
       </div>
