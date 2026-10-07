@@ -17,7 +17,7 @@ The ultimate objective is to become the premier AI-augmented tabletop companionâ
 ## Next Up (Atomic Candidate Ideas)
 <!-- agy reads from and populates this queue -->
 - [x] **[Proposed #7] Natural-Language Compendium Filter Engine**: Instant intent-to-filter bar parsing natural queries into active filters with visual preview chips
-- [ ] **[Proposed #9] LLM-Driven Filter Proposer & 1-Click Compendium Navigator**: On-device WebGPU AI co-pilot proposes structured filters in chat with interactive preview cards and 1-click active compendium application
+- [x] **[Proposed #9] LLM-Driven Filter Proposer & 1-Click Compendium Navigator**: On-device WebGPU AI co-pilot proposes structured filters in chat with interactive preview cards and 1-click active compendium application
 - [ ] Add model selector dropdown in AI assistant (Llama-3.2-1B, Qwen2.5-1.5B, Gemma-2-2B) with VRAM badges
 - [x] Add "Ask AI about this item/spell" quick-action button in ItemDetailsDialog and SpellDetailsDialog
 - [ ] Add real-time generation speed (tokens/sec) and GPU status telemetry to AI dialog

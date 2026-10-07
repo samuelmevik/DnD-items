@@ -50,12 +50,38 @@ export interface ParsedListAction {
   spellIds: number[];
 }
 
+export interface ParsedFilterAction {
+  targetTab: "items" | "spells";
+  title?: string;
+  // Item-specific facets
+  rarities?: string[];
+  categories?: string[];
+  attunement?: "all" | "requires" | "none";
+  minPrice?: number;
+  maxPrice?: number;
+  // Spell-specific facets
+  levels?: number[];
+  schools?: string[];
+  classes?: string[];
+  castingTimes?: string[];
+  ritualOnly?: boolean;
+  concentrationOnly?: boolean;
+  // Common facets
+  search?: string;
+  favoritesOnly?: boolean;
+  sort?: string;
+  // Pre-computed partial state patches
+  itemPatch?: Record<string, unknown>;
+  spellPatch?: Record<string, unknown>;
+}
+
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant" | "system";
   content: string;
   timestamp: number;
   actionList?: ParsedListAction | null;
+  actionFilter?: ParsedFilterAction | null;
   isStreaming?: boolean;
   error?: string;
 }

@@ -62,6 +62,7 @@ import { CompareDialog } from "./components/CompareDialog";
 import { QuickDiceTray } from "./components/QuickDiceTray";
 import { RandomLootDialog } from "./components/RandomLootDialog";
 import { KeyboardShortcutsDialog } from "./components/KeyboardShortcutsDialog";
+import type { ParsedFilterAction } from "./lib/ai/types";
 const AiAssistantDialog = lazy(() =>
   import("./components/AiAssistant/AiAssistantDialog").then((m) => ({
     default: m.AiAssistantDialog,
@@ -513,6 +514,76 @@ function App() {
     showToast,
   ]);
 
+  const handleApplyAiFilters = useCallback(
+    (action: ParsedFilterAction) => {
+      setSmartFilterRevertSnapshot({
+        tab: activeTab,
+        itemState: { ...state },
+        spellState: { ...spellState },
+        searchTerm,
+        appliedLabels: [action.title || "AI Filters"],
+      });
+
+      if (action.targetTab !== activeTab) {
+        handleTabChange(action.targetTab);
+      }
+
+      if (action.targetTab === "items") {
+        const itemPatch: Partial<FilterState> = {
+          ...(action.rarities ? { rarities: action.rarities } : {}),
+          ...(action.categories ? { categories: action.categories } : {}),
+          ...(action.attunement ? { attunement: action.attunement } : {}),
+          ...(typeof action.minPrice === "number" ? { minPrice: action.minPrice } : {}),
+          ...(typeof action.maxPrice === "number" ? { maxPrice: action.maxPrice } : {}),
+          search: action.search || "",
+        };
+        updateState(itemPatch);
+      } else {
+        const spellPatch: Partial<SpellFilterState> = {
+          ...(action.levels ? { levels: action.levels } : {}),
+          ...(action.schools ? { schools: action.schools } : {}),
+          ...(action.classes ? { classes: action.classes } : {}),
+          ...(action.castingTimes
+            ? { castingTimes: action.castingTimes as unknown as SpellFilterState["castingTimes"] }
+            : {}),
+          ...(action.ritualOnly !== undefined ? { ritualOnly: action.ritualOnly } : {}),
+          ...(action.concentrationOnly !== undefined ? { concentrationOnly: action.concentrationOnly } : {}),
+          search: action.search || "",
+        };
+        updateSpellState(spellPatch);
+      }
+
+      setAiAssistantOpen(false);
+      showToast(
+        `🎯 Applied filters: ${action.title || "AI Filters"} in ${
+          action.targetTab === "items" ? "Items" : "Spells"
+        } compendium!`,
+      );
+    },
+    [
+      activeTab,
+      state,
+      spellState,
+      searchTerm,
+      handleTabChange,
+      updateState,
+      updateSpellState,
+      showToast,
+    ],
+  );
+
+  const handleOpenAiFilter = useCallback(
+    (tab: CatalogTab = activeTab) => {
+      const prompt =
+        tab === "items"
+          ? "Suggest items matching: "
+          : "Suggest spells matching: ";
+      setAiAssistantInitialPrompt(prompt);
+      setAiAssistantOpen(true);
+    },
+    [activeTab],
+  );
+
   const handleFavoritesToggle = useCallback(() => {
     if (isViewingShared) {
       // If viewing shared, dismissing or toggling returns to all items
@@ -758,6 +829,7 @@ function App() {
             priceBounds={[lowestPrice, highestPrice]}
             mobileOpen={mobileFiltersOpen}
             onMobileOpenChange={setMobileFiltersOpen}
+            onAskAiFilter={() => handleOpenAiFilter("items")}
           />
         ) : (
           <SpellFilterSidebar
@@ -767,6 +839,7 @@ function App() {
             favorites={effectiveSpellFavorites}
             mobileOpen={mobileFiltersOpen}
             onMobileOpenChange={setMobileFiltersOpen}
+            onAskAiFilter={() => handleOpenAiFilter("spells")}
           />
         )}
 
@@ -819,6 +892,7 @@ function App() {
                     : undefined
                 }
                 onOpenRandomLoot={() => setRandomLootOpen(true)}
+                onAskAiFilter={() => handleOpenAiFilter("items")}
               />
 
               <ActiveFilterChips
@@ -829,6 +903,7 @@ function App() {
                 onClearAll={handleClearFilters}
                 onRevert={handleRevertSmartFilters}
                 canRevert={Boolean(smartFilterRevertSnapshot)}
+                onAskAiFilter={() => handleOpenAiFilter("items")}
               />
 
               {filteredItems.length === 0 ? (
@@ -890,6 +965,7 @@ function App() {
                 viewMode={viewMode}
                 onViewModeChange={handleViewModeChange}
                 onOpenRandomLoot={() => setRandomLootOpen(true)}
+                onAskAiFilter={() => handleOpenAiFilter("spells")}
               />
 
               <ActiveFilterChips
@@ -899,6 +975,7 @@ function App() {
                 onClearAll={handleClearFilters}
                 onRevert={handleRevertSmartFilters}
                 canRevert={Boolean(smartFilterRevertSnapshot)}
+                onAskAiFilter={() => handleOpenAiFilter("spells")}
               />
 
               {filteredSpells.length === 0 ? (
@@ -1115,6 +1192,7 @@ function App() {
               const newList = createList(name, itemIds, spellIds);
               setActiveListId(newList.id);
             }}
+            onApplyFilters={handleApplyAiFilters}
             onToast={showToast}
           />
         </Suspense>

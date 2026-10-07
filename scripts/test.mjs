@@ -24,6 +24,10 @@ async function runAllTests() {
     nlpFilterParserTest.runNlpFilterParserTests();
     console.log("  ✓ nlpFilterParser tests passed");
 
+    const actionParserTest = await server.ssrLoadModule("./src/lib/ai/actionParser.test.ts");
+    actionParserTest.runActionParserTests();
+    console.log("  ✓ actionParser tests passed");
+
     console.log("🎉 All unit tests passed successfully!");
   } finally {
     await server.close();

@@ -1,9 +1,21 @@
 import React, { useMemo, useState } from "react";
-import { Sparkles, Check, Plus, ExternalLink, Scroll, Package, FileText } from "lucide-react";
-import { Item, items } from "@/data/items";
+import {
+  Sparkles,
+  Check,
+  Plus,
+  ExternalLink,
+  Scroll,
+  Package,
+  FileText,
+  SlidersHorizontal,
+  ArrowRight,
+} from "lucide-react";
+import { Item, items, lowestPrice, highestPrice } from "@/data/items";
 import { Spell, spells } from "@/data/spells";
-import { ParsedListAction } from "@/lib/ai/types";
+import { ParsedListAction, ParsedFilterAction } from "@/lib/ai/types";
 import { copyLoadoutMarkdownToClipboard } from "@/lib/ai/loadoutExport";
+import { filterItems, FilterState } from "@/lib/filters";
+import { filterSpells, SpellFilterState, CastingTimeCategory } from "@/lib/spellFilters";
 import {
   itemsById,
   spellsById,
@@ -17,24 +29,30 @@ import { CloakIcon } from "@/components/CloakIcon";
 interface AiMessageContentProps {
   content: string;
   actionList?: ParsedListAction | null;
+  actionFilter?: ParsedFilterAction | null;
   onSelectItem: (item: Item) => void;
   onSelectSpell: (spell: Spell) => void;
   onCreateList: (name: string, itemIds: number[], spellIds: number[]) => void;
+  onApplyFilters?: (action: ParsedFilterAction) => void;
   onToast?: (msg: string) => void;
 }
 
 const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const EMPTY_FAVORITES = new Set<number>();
 
 export const AiMessageContent: React.FC<AiMessageContentProps> = ({
   content,
   actionList,
+  actionFilter,
   onSelectItem,
   onSelectSpell,
   onCreateList,
+  onApplyFilters,
   onToast,
 }) => {
   const [listCreated, setListCreated] = useState(false);
   const [markdownCopied, setMarkdownCopied] = useState(false);
+  const [filtersApplied, setFiltersApplied] = useState(false);
 
   // Fallback entity extractor: if the LLM forgot to output [CREATE_LIST:...],
   // detect any items & spells mentioned in the text so the user can still 1-click create the list!
@@ -146,6 +164,151 @@ export const AiMessageContent: React.FC<AiMessageContentProps> = ({
       onToast?.("⚠️ Unable to copy Markdown handout to clipboard.");
     }
   };
+
+  const handleApplyFilters = () => {
+    if (!actionFilter || !onApplyFilters) return;
+    onApplyFilters(actionFilter);
+    setFiltersApplied(true);
+    onToast?.(`🎯 Applied proposed filters to compendium!`);
+  };
+
+  const filterMatchData = useMemo(() => {
+    if (!actionFilter) return null;
+
+    if (actionFilter.targetTab === "items") {
+      const fs: FilterState = {
+        search: actionFilter.search || "",
+        rarities: actionFilter.rarities || [],
+        categories: actionFilter.categories || [],
+        minPrice: actionFilter.minPrice ?? lowestPrice,
+        maxPrice: actionFilter.maxPrice ?? highestPrice,
+        attunement: actionFilter.attunement || "all",
+        favoritesOnly: false,
+        sort: "name-asc",
+      };
+      const matching = filterItems(items, fs, EMPTY_FAVORITES);
+      return {
+        type: "items" as const,
+        matchingCount: matching.length,
+        sampleMatches: matching.slice(0, 4),
+      };
+    } else {
+      const sfs: SpellFilterState = {
+        search: actionFilter.search || "",
+        levels: actionFilter.levels || [],
+        schools: actionFilter.schools || [],
+        classes: actionFilter.classes || [],
+        castingTimes: (actionFilter.castingTimes || []) as CastingTimeCategory[],
+        ritualOnly: Boolean(actionFilter.ritualOnly),
+        concentrationOnly: Boolean(actionFilter.concentrationOnly),
+        favoritesOnly: false,
+        sort: "level-asc",
+      };
+      const matching = filterSpells(spells, sfs, EMPTY_FAVORITES);
+      return {
+        type: "spells" as const,
+        matchingCount: matching.length,
+        sampleMatches: matching.slice(0, 4),
+      };
+    }
+  }, [actionFilter]);
+
+  const criteriaChips = useMemo(() => {
+    if (!actionFilter) return [];
+    const chips: { label: string; value: string; color: string }[] = [];
+
+    if (actionFilter.targetTab === "items") {
+      if (actionFilter.rarities && actionFilter.rarities.length > 0) {
+        chips.push({
+          label: "Rarity",
+          value: actionFilter.rarities.join(", "),
+          color: "border-amber-500/40 bg-amber-500/10 text-amber-300",
+        });
+      }
+      if (actionFilter.categories && actionFilter.categories.length > 0) {
+        chips.push({
+          label: "Type",
+          value: actionFilter.categories.join(", "),
+          color: "border-sky-500/40 bg-sky-500/10 text-sky-300",
+        });
+      }
+      if (actionFilter.attunement && actionFilter.attunement !== "all") {
+        chips.push({
+          label: "Attunement",
+          value: actionFilter.attunement === "requires" ? "Required" : "No Attunement",
+          color: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+        });
+      }
+      if (actionFilter.minPrice !== undefined || actionFilter.maxPrice !== undefined) {
+        const min = actionFilter.minPrice ? `${actionFilter.minPrice.toLocaleString()} gp` : "0 gp";
+        const max = actionFilter.maxPrice ? `${actionFilter.maxPrice.toLocaleString()} gp` : "∞";
+        chips.push({
+          label: "Price",
+          value: `${min} – ${max}`,
+          color: "border-yellow-500/40 bg-yellow-500/10 text-yellow-300",
+        });
+      }
+      if (actionFilter.search) {
+        chips.push({
+          label: "Search",
+          value: `"${actionFilter.search}"`,
+          color: "border-violet-500/40 bg-violet-500/10 text-violet-300",
+        });
+      }
+    } else {
+      if (actionFilter.classes && actionFilter.classes.length > 0) {
+        chips.push({
+          label: "Class",
+          value: actionFilter.classes.join(", "),
+          color: "border-orange-500/40 bg-orange-500/10 text-orange-300",
+        });
+      }
+      if (actionFilter.schools && actionFilter.schools.length > 0) {
+        chips.push({
+          label: "School",
+          value: actionFilter.schools.join(", "),
+          color: "border-purple-500/40 bg-purple-500/10 text-purple-300",
+        });
+      }
+      if (actionFilter.levels && actionFilter.levels.length > 0) {
+        chips.push({
+          label: "Level",
+          value: actionFilter.levels.map((l) => (l === 0 ? "Cantrip" : `${l}`)).join(", "),
+          color: "border-indigo-500/40 bg-indigo-500/10 text-indigo-300",
+        });
+      }
+      if (actionFilter.castingTimes && actionFilter.castingTimes.length > 0) {
+        chips.push({
+          label: "Casting Time",
+          value: actionFilter.castingTimes.join(", "),
+          color: "border-teal-500/40 bg-teal-500/10 text-teal-300",
+        });
+      }
+      if (actionFilter.ritualOnly) {
+        chips.push({
+          label: "Ritual",
+          value: "Yes",
+          color: "border-rose-500/40 bg-rose-500/10 text-rose-300",
+        });
+      }
+      if (actionFilter.concentrationOnly) {
+        chips.push({
+          label: "Concentration",
+          value: "Yes",
+          color: "border-rose-500/40 bg-rose-500/10 text-rose-300",
+        });
+      }
+      if (actionFilter.search) {
+        chips.push({
+          label: "Search",
+          value: `"${actionFilter.search}"`,
+          color: "border-violet-500/40 bg-violet-500/10 text-violet-300",
+        });
+      }
+    }
+
+    return chips;
+  }, [actionFilter]);
 
   // Linkify unlinked names inside plain text
   const linkifyPlainText = (text: string, keyPrefix: string): React.ReactNode[] => {
@@ -327,6 +490,103 @@ export const AiMessageContent: React.FC<AiMessageContentProps> = ({
   return (
     <div className="space-y-3 leading-relaxed text-sm text-slate-200">
       <div>{renderFormattedText(content)}</div>
+
+      {actionFilter && (
+        <div className="mt-3 rounded-xl border border-sky-500/30 bg-gradient-to-br from-sky-950/30 to-stone-900/60 p-3.5 shadow-lg">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sky-500/20 pb-2.5">
+            <div className="flex items-center gap-2">
+              <div className="flex size-7 items-center justify-center rounded-lg border border-sky-500/30 bg-sky-500/10 text-sky-400">
+                <SlidersHorizontal className="size-3.5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-sky-200">
+                  {actionFilter.title || (actionFilter.targetTab === "items" ? "Proposed Item Filters" : "Proposed Spell Filters")}
+                </h4>
+                <p className="text-[11px] text-stone-400">
+                  {filterMatchData ? (
+                    <span className="inline-flex items-center gap-1 font-medium text-emerald-400">
+                      🎯 {filterMatchData.matchingCount} matching {filterMatchData.type} in compendium
+                    </span>
+                  ) : (
+                    <span>Filters ready to apply</span>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleApplyFilters}
+              className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-md transition-all ${
+                filtersApplied
+                  ? "bg-emerald-600 text-white"
+                  : "bg-sky-600 text-white hover:bg-sky-500 active:scale-95"
+              }`}
+            >
+              {filtersApplied ? (
+                <>
+                  <Check className="size-3.5" />
+                  <span>Applied to Compendium</span>
+                </>
+              ) : (
+                <>
+                  <SlidersHorizontal className="size-3.5" />
+                  <span>Apply & View in Compendium</span>
+                  <ArrowRight className="size-3" />
+                </>
+              )}
+            </button>
+          </div>
+
+          {criteriaChips.length > 0 && (
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {criteriaChips.map((chip, idx) => (
+                <span
+                  key={`${chip.label}_${idx}`}
+                  className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-medium shadow-xs ${chip.color}`}
+                >
+                  <span className="opacity-70">{chip.label}:</span>
+                  <span className="font-semibold">{chip.value}</span>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {filterMatchData && filterMatchData.sampleMatches.length > 0 && (
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-stone-800/80 pt-2 text-xs text-stone-400">
+              <span className="text-[11px] font-medium text-stone-500">Preview:</span>
+              {filterMatchData.type === "items"
+                ? (filterMatchData.sampleMatches as Item[]).map((itm) => (
+                    <button
+                      key={`preview_itm_${itm.id}`}
+                      type="button"
+                      onClick={() => onSelectItem(itm)}
+                      className="inline-flex items-center gap-1 rounded border border-amber-500/20 bg-stone-900/60 px-1.5 py-0.5 text-xs text-amber-300 hover:border-amber-400 hover:bg-amber-500/10"
+                    >
+                      <Package className="size-3 text-amber-400" />
+                      <span>{itm.name}</span>
+                    </button>
+                  ))
+                : (filterMatchData.sampleMatches as Spell[]).map((spl) => (
+                    <button
+                      key={`preview_spl_${spl.id}`}
+                      type="button"
+                      onClick={() => onSelectSpell(spl)}
+                      className="inline-flex items-center gap-1 rounded border border-indigo-500/20 bg-stone-900/60 px-1.5 py-0.5 text-xs text-indigo-300 hover:border-indigo-400 hover:bg-indigo-500/10"
+                    >
+                      <Scroll className="size-3 text-indigo-400" />
+                      <span>{spl.name}</span>
+                    </button>
+                  ))}
+              {filterMatchData.matchingCount > filterMatchData.sampleMatches.length && (
+                <span className="text-[11px] text-stone-500">
+                  +{filterMatchData.matchingCount - filterMatchData.sampleMatches.length} more
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {effectiveActionList && (
         <div className="mt-3 rounded-lg border border-amber-500/30 bg-gradient-to-br from-amber-950/30 to-stone-900/40 p-3.5 shadow-md">

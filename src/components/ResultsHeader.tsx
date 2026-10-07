@@ -9,6 +9,7 @@ import {
   LayoutGrid,
   List,
   Dices,
+  Sparkles,
 } from "lucide-react";
 import { SortKey } from "@/lib/filters";
 import { SortMenu } from "./SortMenu";
@@ -36,6 +37,7 @@ type ResultsHeaderProps = {
   totalGold?: number;
   attunementCount?: number;
   onOpenRandomLoot?: () => void;
+  onAskAiFilter?: () => void;
 };
 
 export function ResultsHeader({
@@ -59,6 +61,7 @@ export function ResultsHeader({
   totalGold,
   attunementCount,
   onOpenRandomLoot,
+  onAskAiFilter,
 }: ResultsHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -240,6 +243,20 @@ export function ResultsHeader({
           >
             <Dices className="size-3.5 text-amber-500" />
             <span className="hidden sm:inline">Random</span>
+          </button>
+        )}
+
+        {onAskAiFilter && (
+          <button
+            type="button"
+            onClick={onAskAiFilter}
+            title="Ask AI to propose compendium filters"
+            aria-label="Ask AI to filter"
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 px-2.5 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-500/20 hover:border-amber-500/60 dark:text-amber-300 shadow-2xs active:scale-95"
+          >
+            <Sparkles className="size-3.5 text-amber-500" />
+            <span className="hidden sm:inline">Ask AI to filter</span>
+            <span className="sm:hidden">Ask AI</span>
           </button>
         )}
 
